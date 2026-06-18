@@ -10,154 +10,65 @@
 <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <style>
 :root {
-  --bg-color: #f0fdf4;
-  --primary-color: #57b894;
-  --primary-hover: #429778;
-  --text-dark: #334155;
-  --text-muted: #64748b;
-  --card-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
-  --success-bg: #d1fae5; --success-text: #065f46;
-  --warning-bg: #fef3c7; --warning-text: #92400e;
-  --danger-bg: #fee2e2;  --danger-text: #b91c1c;
+  --bg:#f0fdf4;--primary:#57b894;--phover:#429778;--dark:#334155;--muted:#64748b;
+  --shadow:0 4px 6px -1px rgba(0,0,0,0.05),0 2px 4px -1px rgba(0,0,0,0.03);
+  --sbg:#d1fae5;--stxt:#065f46;--wbg:#fef3c7;--wtxt:#92400e;--dbg:#fee2e2;--dtxt:#b91c1c;
 }
-body { padding: 20px; background-color: var(--bg-color); font-family: 'Sarabun', sans-serif; color: var(--text-dark); }
-
-/* ===== LOGIN ===== */
-#loginOverlay {
-  position: fixed; top:0; left:0; width:100%; height:100%;
-  background: linear-gradient(135deg, #a7f3d0, #57b894);
-  z-index: 9999; display: flex; justify-content: center; align-items: center;
-}
-.login-card {
-  background: white; padding: 40px; border-radius: 20px;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center;
-}
-.login-input {
-  font-size: 1.5rem; letter-spacing: 3px; text-align: center;
-  border-radius: 12px; padding: 12px; margin-bottom: 20px;
-  border: 2px solid #e2e8f0; background: #f8fafc;
-}
-
-/* ===== HEADER ===== */
-.main-header {
-  background: white; padding: 15px 20px; border-radius: 16px;
-  box-shadow: var(--card-shadow); margin-bottom: 20px;
-  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 15px;
-}
-h3 { font-weight: 700; color: var(--primary-color); margin: 0; font-size: 1.4rem; }
-
-/* ===== BUTTONS ===== */
-.btn { border-radius: 8px; font-weight: 500; transition: all 0.2s; }
-.btn:hover { transform: translateY(-1px); }
-.btn-primary { background-color: var(--primary-color); border-color: var(--primary-color); }
-.btn-primary:hover { background-color: var(--primary-hover); border-color: var(--primary-hover); }
-
-.source-btn {
-  border: 1px solid #e2e8f0; background: white; color: var(--text-muted);
-  border-radius: 8px; padding: 8px 16px; font-weight: 600; font-size: 0.9rem; cursor: pointer;
-}
-.source-btn.active {
-  border-color: var(--primary-color); background-color: #ecfdf5;
-  color: var(--primary-color); box-shadow: 0 2px 4px rgba(87,184,148,0.2);
-}
-
-.warehouse-btn {
-  background: white; border: 1px solid #e2e8f0; color: var(--text-muted);
-  border-radius: 6px; padding: 4px 10px; font-size: 0.8rem; font-weight: 500;
-  cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center;
-}
-.warehouse-btn:hover { background-color: #f8fafc; border-color: #cbd5e1; transform: translateY(-1px); }
-.warehouse-btn.active {
-  background-color: var(--primary-color); color: white;
-  border-color: var(--primary-color); box-shadow: 0 2px 4px rgba(87,184,148,0.25); font-weight: 600;
-}
-.count-badge {
-  background-color: rgba(0,0,0,0.05); border-radius: 4px;
-  padding: 0 5px; margin-left: 5px; font-size: 0.8em;
-}
-.active .count-badge { background-color: rgba(255,255,255,0.25); color: white; }
-
-/* ===== CARDS ===== */
-.status-header {
-  font-weight: 700; text-align: center; padding: 10px;
-  border-radius: 10px; margin-bottom: 15px; font-size: 1rem;
-}
-.bg-head-success { background-color: var(--success-bg); color: var(--success-text); }
-.bg-head-warning { background-color: var(--warning-bg); color: var(--warning-text); }
-.bg-head-danger  { background-color: var(--danger-bg);  color: var(--danger-text); }
-
-.po-card {
-  background: white; border-radius: 12px; box-shadow: var(--card-shadow);
-  margin-bottom: 12px; overflow: hidden; border-left: 5px solid #ccc; transition: transform 0.2s;
-}
-.po-card:hover { transform: translateY(-2px); }
-.card-border-success { border-left-color: #34d399 !important; }
-.card-border-warning { border-left-color: #fbbf24 !important; }
-.card-border-danger  { border-left-color: #f87171 !important; }
-
-.po-header {
-  padding: 10px 15px; background: #f8fafc;
-  border-bottom: 1px solid #f1f5f9; font-weight: 600;
-  display: flex; justify-content: space-between; align-items: center; font-size: 0.95rem;
-}
-.po-body { padding: 12px 15px; font-size: 0.9rem; }
-.info-row { display: flex; margin-bottom: 6px; align-items: baseline; }
-.info-label { width: 90px; color: var(--text-muted); font-size: 0.8rem; }
-.info-value { flex: 1; font-weight: 500; color: var(--text-dark); }
-
-.status-badge { padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
-.bg-success { background-color: var(--success-bg) !important; color: var(--success-text) !important; }
-.bg-warning { background-color: var(--warning-bg) !important; color: var(--warning-text) !important; }
-.bg-danger  { background-color: var(--danger-bg)  !important; color: var(--danger-text)  !important; }
-
-.vendor-tag { font-size: 0.7rem; padding: 2px 8px; border-radius: 6px; color: white; font-weight: 500; }
-
-/* ===== UPLOAD OVERLAY ===== */
-.upload-overlay {
-  position: fixed; top:0; left:0; width:100%; height:100%;
-  background: rgba(255,255,255,0.9); z-index:10000; display:none;
-  flex-direction:column; justify-content:center; align-items:center; backdrop-filter: blur(5px);
-}
-.file-input { display: none; }
-
-/* ===== NO DATA ===== */
-.no-data-alert {
-  text-align: center; padding: 40px; color: var(--text-muted);
-  background: white; border-radius: 16px; margin-top: 20px;
-  box-shadow: var(--card-shadow); border: 2px dashed #e2e8f0;
-}
-
-/* ===== LOAD MORE ===== */
-.load-more-btn {
-  background: white; border: 1px solid #e2e8f0; color: var(--primary-color);
-  padding: 8px 24px; border-radius: 50px; font-weight: 600; font-size: 0.9rem; transition: all 0.2s;
-}
-.load-more-btn:hover { background: #f8fafc; transform: scale(1.02); }
-
-/* ===== PROGRESS ===== */
-.upload-progress { width: 300px; margin-top: 20px; }
-
-@media (max-width: 768px) {
-  body { padding: 10px; }
-  .main-header { padding: 15px; flex-direction: column; align-items: stretch; text-align: center; gap: 10px; }
-  .d-flex.gap-2 { justify-content: center; flex-wrap: wrap; }
-  .source-btn { width: 100%; margin: 2px 0; justify-content: center; }
-  .col-md-4 { margin-bottom: 20px; }
-}
+body{padding:20px;background:var(--bg);font-family:'Sarabun',sans-serif;color:var(--dark);}
+#loginOverlay{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#a7f3d0,#57b894);z-index:9999;display:flex;justify-content:center;align-items:center;}
+.login-card{background:white;padding:40px;border-radius:20px;box-shadow:0 20px 50px rgba(0,0,0,0.1);width:90%;max-width:400px;text-align:center;}
+.login-input{font-size:1.5rem;letter-spacing:3px;text-align:center;border-radius:12px;padding:12px;margin-bottom:20px;border:2px solid #e2e8f0;background:#f8fafc;}
+.main-header{background:white;padding:15px 20px;border-radius:16px;box-shadow:var(--shadow);margin-bottom:20px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:15px;}
+h3{font-weight:700;color:var(--primary);margin:0;font-size:1.4rem;}
+.btn{border-radius:8px;font-weight:500;transition:all 0.2s;}
+.btn:hover{transform:translateY(-1px);}
+.btn-primary{background:var(--primary);border-color:var(--primary);}
+.btn-primary:hover{background:var(--phover);border-color:var(--phover);}
+.source-btn{border:1px solid #e2e8f0;background:white;color:var(--muted);border-radius:8px;padding:8px 16px;font-weight:600;font-size:0.9rem;cursor:pointer;transition:all 0.2s;}
+.source-btn.active{border-color:var(--primary);background:#ecfdf5;color:var(--primary);}
+.warehouse-btn{background:white;border:1px solid #e2e8f0;color:var(--muted);border-radius:6px;padding:4px 10px;font-size:0.8rem;font-weight:500;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;margin:2px;}
+.warehouse-btn:hover{background:#f8fafc;transform:translateY(-1px);}
+.warehouse-btn.active{background:var(--primary);color:white;border-color:var(--primary);font-weight:600;}
+.count-badge{background:rgba(0,0,0,0.05);border-radius:4px;padding:0 5px;margin-left:5px;font-size:0.8em;}
+.active .count-badge{background:rgba(255,255,255,0.25);color:white;}
+.status-header{font-weight:700;text-align:center;padding:10px;border-radius:10px;margin-bottom:15px;}
+.bg-head-success{background:var(--sbg);color:var(--stxt);}
+.bg-head-warning{background:var(--wbg);color:var(--wtxt);}
+.bg-head-danger{background:var(--dbg);color:var(--dtxt);}
+.po-card{background:white;border-radius:12px;box-shadow:var(--shadow);margin-bottom:12px;overflow:hidden;border-left:5px solid #ccc;transition:transform 0.2s;}
+.po-card:hover{transform:translateY(-2px);}
+.card-border-success{border-left-color:#34d399!important;}
+.card-border-warning{border-left-color:#fbbf24!important;}
+.card-border-danger{border-left-color:#f87171!important;}
+.po-header{padding:10px 15px;background:#f8fafc;border-bottom:1px solid #f1f5f9;font-weight:600;display:flex;justify-content:space-between;align-items:center;font-size:0.95rem;}
+.po-body{padding:12px 15px;font-size:0.9rem;}
+.info-row{display:flex;margin-bottom:6px;align-items:baseline;}
+.info-label{width:90px;color:var(--muted);font-size:0.8rem;}
+.info-value{flex:1;font-weight:500;}
+.status-badge{padding:3px 10px;border-radius:20px;font-size:0.75rem;font-weight:600;}
+.bg-success{background:var(--sbg)!important;color:var(--stxt)!important;}
+.bg-warning{background:var(--wbg)!important;color:var(--wtxt)!important;}
+.bg-danger{background:var(--dbg)!important;color:var(--dtxt)!important;}
+.vendor-tag{font-size:0.7rem;padding:2px 8px;border-radius:6px;color:white;font-weight:500;}
+.upload-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.92);z-index:10000;display:none;flex-direction:column;justify-content:center;align-items:center;backdrop-filter:blur(5px);}
+.file-input{display:none;}
+.no-data-alert{text-align:center;padding:40px;color:var(--muted);background:white;border-radius:16px;margin-top:20px;box-shadow:var(--shadow);border:2px dashed #e2e8f0;}
+.load-more-btn{background:white;border:1px solid #e2e8f0;color:var(--primary);padding:8px 24px;border-radius:50px;font-weight:600;font-size:0.9rem;transition:all 0.2s;}
+.load-more-btn:hover{background:#f8fafc;transform:scale(1.02);}
+@media(max-width:768px){body{padding:10px;}.main-header{flex-direction:column;align-items:stretch;text-align:center;}.col-md-4{margin-bottom:20px;}}
 </style>
 </head>
 <body>
 
 <!-- Upload Loader -->
 <div id="uploadLoader" class="upload-overlay">
-  <div class="spinner-border text-primary" style="width:3rem;height:3rem;" role="status"></div>
-  <h6 class="mt-3 text-dark fw-bold" id="uploadStatusText">กำลังอัปโหลด...</h6>
-  <small class="text-muted" id="uploadSubText">กรุณารอสักครู่</small>
-  <div class="upload-progress mt-3">
-    <div class="progress" style="height:8px;border-radius:4px;">
+  <div class="spinner-border text-primary" style="width:3rem;height:3rem;"></div>
+  <h6 class="mt-3 fw-bold" id="uploadStatusText">กำลังอัปโหลด...</h6>
+  <small class="text-muted" id="uploadSubText"></small>
+  <div style="width:320px;margin-top:16px;">
+    <div class="progress mt-2" style="height:8px;border-radius:4px;">
       <div id="uploadProgressBar" class="progress-bar bg-success" style="width:0%;transition:width 0.3s;"></div>
     </div>
     <small class="text-muted mt-1 d-block text-center" id="uploadProgressText"></small>
@@ -176,7 +87,7 @@ h3 { font-weight: 700; color: var(--primary-color); margin: 0; font-size: 1.4rem
     </div>
     <form onsubmit="handleLogin(event)">
       <input type="password" id="loginId" class="form-control login-input" placeholder="CODE" required autofocus>
-      <button type="submit" id="btnLogin" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm">ตรวจสอบสิทธิ์</button>
+      <button type="submit" id="btnLogin" class="btn btn-primary btn-lg w-100 fw-bold">ตรวจสอบสิทธิ์</button>
     </form>
     <div id="loginMsg" class="mt-3 text-danger fw-bold small"></div>
   </div>
@@ -187,29 +98,29 @@ h3 { font-weight: 700; color: var(--primary-color); margin: 0; font-size: 1.4rem
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content" style="border-radius:16px;border:none;">
       <div class="modal-header border-0 pb-0">
-        <h5 class="modal-title fw-bold text-dark ps-2"><i class="fas fa-cloud-upload-alt text-primary"></i> อัปโหลดข้อมูล</h5>
+        <h5 class="modal-title fw-bold ps-2"><i class="fas fa-cloud-upload-alt text-primary"></i> อัปโหลดข้อมูล</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body p-4">
-        <p class="text-muted small mb-4 text-center">เลือกไฟล์ .xlsx เพื่ออัปโหลด (ข้อมูลเก่าจะถูกแทนที่)</p>
+        <p class="text-muted small mb-4 text-center">เลือกไฟล์ .xlsx — ข้อมูลเก่าจะถูกแทนที่ทั้งหมด</p>
         <div class="d-grid gap-3">
-          <input type="file" id="file_CHV"     class="file-input" accept=".xlsx" onchange="processUpload('chv_data', this, 'CHV')">
+          <input type="file" id="file_CHV"  class="file-input" accept=".xlsx,.xls" onchange="processUpload('chv_data','CHV',this)">
           <button class="btn btn-outline-primary text-start p-3" onclick="document.getElementById('file_CHV').click()">
-            <i class="fas fa-file-excel me-2"></i> อัปโหลด <b>Chevron (CHV)</b>
+            <i class="fas fa-file-excel me-2"></i> อัปโหลด <b>Chevron (CHV_DATA)</b>
           </button>
-          <input type="file" id="file_MRC"     class="file-input" accept=".xlsx" onchange="processUpload('mrc_data', this, 'MRC')">
+          <input type="file" id="file_MRC"  class="file-input" accept=".xlsx,.xls" onchange="processUpload('mrc_data','MRC',this)">
           <button class="btn btn-outline-success text-start p-3" onclick="document.getElementById('file_MRC').click()">
-            <i class="fas fa-file-excel me-2"></i> อัปโหลด <b>Miracle (MRC)</b>
+            <i class="fas fa-file-excel me-2"></i> อัปโหลด <b>Miracle (MRC_DATA)</b>
           </button>
-          <input type="file" id="file_PSP"     class="file-input" accept=".xlsx" onchange="processUpload('exgodown_data', this, 'EX-Godown')">
-          <button class="btn btn-outline-warning text-dark text-start p-3" onclick="document.getElementById('file_PSP').click()">
-            <i class="fas fa-file-excel me-2"></i> อัปโหลด <b>PSP (EX-Godown)</b>
+          <input type="file" id="file_EXG"  class="file-input" accept=".xlsx,.xls" onchange="processUpload('exgodown_data','EX-Godown',this)">
+          <button class="btn btn-outline-warning text-dark text-start p-3" onclick="document.getElementById('file_EXG').click()">
+            <i class="fas fa-file-excel me-2"></i> อัปโหลด <b>PSP (EX-Godown_Data)</b>
           </button>
-          <input type="file" id="file_ME2N"    class="file-input" accept=".xlsx" onchange="processUpload('me2n_data', this, 'Me2n')">
+          <input type="file" id="file_ME2N" class="file-input" accept=".xlsx,.xls" onchange="processUpload('me2n_data','Me2n',this)">
           <button class="btn btn-outline-secondary text-start p-3" onclick="document.getElementById('file_ME2N').click()">
             <i class="fas fa-file-excel me-2"></i> อัปโหลด <b>ME2N</b>
           </button>
-          <input type="file" id="file_MB51"    class="file-input" accept=".xlsx" onchange="processUpload('mb51_data', this, 'MB51')">
+          <input type="file" id="file_MB51" class="file-input" accept=".xlsx,.xls" onchange="processUpload('mb51_data','MB51',this)">
           <button class="btn btn-outline-dark text-start p-3" onclick="document.getElementById('file_MB51').click()">
             <i class="fas fa-file-excel me-2"></i> อัปโหลด <b>MB51</b>
           </button>
@@ -221,8 +132,6 @@ h3 { font-weight: 700; color: var(--primary-color); margin: 0; font-size: 1.4rem
 
 <!-- Main App -->
 <div id="mainApp" class="container-fluid" style="max-width:1400px;display:none;">
-
-  <!-- Header -->
   <div class="main-header">
     <div class="d-flex align-items-center gap-3">
       <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
@@ -238,40 +147,36 @@ h3 { font-weight: 700; color: var(--primary-color); margin: 0; font-size: 1.4rem
       <span class="badge bg-white text-dark border" id="userWarehouseBadge" style="display:none;">
         <i class="fas fa-warehouse text-primary"></i> <span id="userWarehouseDisplay"></span>
       </span>
-      <button id="headerUploadBtn" class="btn btn-primary btn-sm shadow-sm" style="display:none;" data-bs-toggle="modal" data-bs-target="#uploadModal">
+      <button id="headerUploadBtn" class="btn btn-primary btn-sm" style="display:none;" data-bs-toggle="modal" data-bs-target="#uploadModal">
         <i class="fas fa-cloud-upload-alt"></i> อัปโหลด
       </button>
-      <button class="btn btn-success btn-sm shadow-sm text-white" onclick="exportToExcel()" style="background-color:#10b981;border:none;">
+      <button class="btn btn-success btn-sm text-white" onclick="exportToExcel()" style="background:#10b981;border:none;">
         <i class="fas fa-file-download"></i> Export
       </button>
-      <button class="btn btn-sm btn-outline-danger" onclick="logout()">
-        <i class="fas fa-sign-out-alt"></i>
-      </button>
+      <button class="btn btn-sm btn-outline-danger" onclick="logout()"><i class="fas fa-sign-out-alt"></i></button>
     </div>
   </div>
 
-  <!-- Filter Panel -->
-  <div class="card p-4 mb-4 border-0" style="border-radius:16px;box-shadow:var(--card-shadow);">
+  <div class="card p-4 mb-4 border-0" style="border-radius:16px;box-shadow:var(--shadow);">
     <div class="row g-4">
       <div class="col-md-5">
         <label class="form-label text-muted fw-bold small text-uppercase">แหล่งข้อมูล</label>
         <div class="d-flex flex-wrap gap-2">
-          <button class="source-btn active" onclick="toggleSource('CHV', this)">Chevron</button>
-          <button class="source-btn active" onclick="toggleSource('MRC', this)">Miracle</button>
-          <button class="source-btn active" onclick="toggleSource('EX-Godown', this)">PSP</button>
-          <button class="source-btn active" onclick="toggleSource('Me2n', this)">Me2n</button>
-          <button class="source-btn active" onclick="toggleSource('MB51', this)">MB51</button>
+          <button class="source-btn active" onclick="toggleSource('CHV',this)">Chevron</button>
+          <button class="source-btn active" onclick="toggleSource('MRC',this)">Miracle</button>
+          <button class="source-btn active" onclick="toggleSource('EX-Godown',this)">PSP</button>
+          <button class="source-btn active" onclick="toggleSource('Me2n',this)">Me2n</button>
+          <button class="source-btn active" onclick="toggleSource('MB51',this)">MB51</button>
         </div>
         <div class="mt-3">
           <small class="text-muted" style="font-size:0.8rem;">
-            <i class="far fa-clock me-1 text-primary"></i> อัปเดตล่าสุด:
-            <span id="lastUpdateDisplay" class="fw-bold text-dark">-</span>
+            <i class="far fa-clock me-1 text-primary"></i> อัปเดตล่าสุด: <span id="lastUpdateDisplay" class="fw-bold text-dark">-</span>
           </small>
         </div>
       </div>
       <div class="col-md-7">
         <label class="form-label text-muted fw-bold small text-uppercase">Warehouse (คลัง)</label>
-        <div id="filterButtonContainer"><span class="text-muted fst-italic small">Loading...</span></div>
+        <div id="filterButtonContainer" class="d-flex flex-wrap"><span class="text-muted fst-italic small">Loading...</span></div>
       </div>
     </div>
     <hr class="my-4" style="opacity:0.1;">
@@ -280,19 +185,17 @@ h3 { font-weight: 700; color: var(--primary-color); margin: 0; font-size: 1.4rem
         <div class="input-group shadow-sm" style="border-radius:50px;overflow:hidden;">
           <span class="input-group-text bg-white border-0 ps-3"><i class="fas fa-search text-muted"></i></span>
           <input type="text" id="searchInput" class="form-control border-0 py-2"
-            placeholder="พิมพ์เลข PO, ชื่อสถานี, วันที่ หรือสถานะ..."
-            oninput="debounceSearch()">
+            placeholder="พิมพ์เลข PO, ชื่อสถานี, สถานะ, วันที่..." oninput="debounceSearch()">
         </div>
       </div>
       <div class="col-md-3">
-        <button class="btn btn-primary w-100 py-2 shadow-sm rounded-pill" onclick="performSearch()">ค้นหา</button>
+        <button class="btn btn-primary w-100 py-2 rounded-pill" onclick="performSearch()">ค้นหา</button>
       </div>
     </div>
   </div>
 
-  <!-- Results -->
   <div id="loader" class="text-center mt-5">
-    <div class="spinner-border text-primary" role="status"></div>
+    <div class="spinner-border text-primary"></div>
     <p class="mt-2 text-muted">กำลังดึงข้อมูล...</p>
   </div>
 
@@ -312,482 +215,430 @@ h3 { font-weight: 700; color: var(--primary-color); margin: 0; font-size: 1.4rem
         <div id="colFailed"></div>
       </div>
     </div>
-    <div class="text-center mt-5 mb-5">
-      <button id="loadMoreBtn" class="load-more-btn shadow-sm" style="display:none;" onclick="loadMore()">
+    <div class="text-center mt-4 mb-5">
+      <button id="loadMoreBtn" class="load-more-btn" style="display:none;" onclick="loadMore()">
         <i class="fas fa-chevron-down me-1"></i> แสดงเพิ่ม
       </button>
       <div id="displayCountText" class="text-muted mt-2 small"></div>
     </div>
   </div>
-
 </div>
 
 <script>
-// =============================================
-// 🔧 CONFIG — แก้ค่านี้ให้ตรงกับ Supabase ของคุณ
-// =============================================
 const SUPABASE_URL  = 'https://tbeaemmupueanpxjxegh.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRiZWFlbW11cHVlYW5weGp4ZWdoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2ODQ3MTQsImV4cCI6MjA5NzI2MDcxNH0.X2-_X9HpG1-8WihISD40e7Rz-LlXxAwB7U0Pt2BCQSQ';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-const { createClient } = supabase;
-const db = createClient(SUPABASE_URL, SUPABASE_ANON);
-
-// =============================================
-// 🗂️ CONFIG ตาราง แต่ละ source
-// =============================================
-const SOURCE_CONFIG = {
+// ============================================================
+// SOURCE CONFIG — ทุกคอลัมน์จากไฟล์จริง ไม่ตัดอะไรออก
+// ============================================================
+const SOURCES = {
   CHV: {
-    table: 'chv_data',
-    label: 'Chevron',
-    color: '#0d6efd',
-    getRows: (data) => data.map(r => ({
-      po:              String(r['Customer PO Number'] || ''),
-      warehouse:       String(r['Ship-to Number']    || ''),
-      status:          String(r['Status(Complete/Incomplete)'] || ''),
-      delivery_date:   r['Actual Delivery date'] ? String(r['Actual Delivery date']) : null,
-      point_code:      String(r['Ship-to Number']  || ''),
-      station_name:    String(r['Ship-To Name']    || ''),
-    })),
-    mapStatus: (s) => {
+    table:'chv_data', label:'Chevron', color:'#0d6efd', headerRow:0,
+    colMap:{
+      'Delivery':'delivery','Item No.':'item_no','Material':'material',
+      'Material Description':'material_description','Delivery Quantity':'delivery_quantity',
+      'Delivery Quantity Unit':'delivery_quantity_unit','Planned GI Date':'planned_gi_date',
+      'Ship-to Number':'ship_to_number','Shipping Instructions':'shipping_instructions',
+      'Ship-To Name':'ship_to_name','Ship-to Address':'ship_to_address',
+      'Sales Order/STO Number':'sales_order_sto','Created Date':'created_date',
+      'Customer PO Number':'customer_po_number','Sold To Party':'sold_to_party',
+      'Sold To Party Name':'sold_to_party_name','Delivery Volume':'delivery_volume',
+      'Delivery Volume Unit':'delivery_volume_unit','Truck Type':'truck_type',
+      'Depart from RTPL':'depart_from_rtpl','Inv. Date':'inv_date','SLA':'sla',
+      'Actual Delivery date':'actual_delivery_date','Status(Complete/Incomplete)':'status',
+      'Remark':'remark'
+    },
+    display:{ po:'customer_po_number', warehouse:'ship_to_number', status:'status',
+              date:'actual_delivery_date', point:'ship_to_number', station:'ship_to_name' },
+    mapStatus: s => {
       if (!s) return 'PENDING';
-      if (s === 'Pass' || s === 'Completed') return 'SUCCESS';
-      if (s === 'Fail' || s === 'Rejected')  return 'FAILED';
+      if (s==='Pass'||s==='Completed') return 'SUCCESS';
+      if (s==='Fail'||s==='Rejected') return 'FAILED';
       return 'PENDING';
     }
   },
   MRC: {
-    table: 'mrc_data',
-    label: 'Miracle',
-    color: '#198754',
-    getRows: (data) => data.map(r => ({
-      po:              String(r['เลขที่ใบส่ง'] || ''),
-      warehouse:       String(r['ศูนย์']       || ''),
-      status:          String(r['สถานะยืนยัน'] || ''),
-      delivery_date:   r['วันที่ยืนยัน'] ? String(r['วันที่ยืนยัน']) : null,
-      point_code:      String(r['พื้นที่ส่ง']  || ''),
-      station_name:    String(r['ชื่อจุดส่ง']  || ''),
-    })),
-    mapStatus: (s) => {
+    table:'mrc_data', label:'Miracle', color:'#198754', headerRow:1,
+    colMap:{
+      '#':'seq','T':'t','สถานะจัดส่ง':'delivery_status','M':'m',
+      'สถานะยืนยัน':'confirm_status','วันที่ยืนยัน':'confirm_date',
+      'เหตุผลยืนยัน':'reason','ชนิด':'type','เลขที่ใบส่ง':'po',
+      'ชื่อจุดส่ง':'station_name','พื้นที่ส่ง':'area','จำนวน':'quantity',
+      'บริษัท(ผู้ว่าจ้าง)':'company','ภาค':'region','ศูนย์':'center','หมายเหตุ':'remark'
+    },
+    display:{ po:'po', warehouse:'center', status:'confirm_status',
+              date:'confirm_date', point:'area', station:'station_name' },
+    mapStatus: s => {
       if (!s) return 'PENDING';
       if (s.includes('ส่งเสร็จ')) return 'SUCCESS';
-      if (s === 'ส่งไม่ได้' || s.includes('คืน')) return 'FAILED';
+      if (s==='ส่งไม่ได้'||s.includes('คืน')) return 'FAILED';
       return 'PENDING';
     }
   },
   'EX-Godown': {
-    table: 'exgodown_data',
-    label: 'PSP',
-    color: '#e67e22',
-    getRows: (data) => data.map(r => ({
-      po:              String(r['เลขที่ใบส่ง'] || ''),
-      warehouse:       String(r['ศูนย์']       || ''),
-      status:          String(r['สถานะยืนยัน'] || ''),
-      delivery_date:   r['วันที่ยืนยัน'] ? String(r['วันที่ยืนยัน']) : null,
-      point_code:      String(r['จุดส่ง']      || ''),
-      station_name:    String(r['ชื่อจุดส่ง']  || ''),
-    })),
-    mapStatus: (s) => {
+    table:'exgodown_data', label:'PSP', color:'#e67e22', headerRow:2,
+    colMap:{
+      '#':'seq','T':'t','สถานะจัดส่ง':'delivery_status','M':'m',
+      'สถานะยืนยัน':'confirm_status','วันที่ยืนยัน':'confirm_date',
+      'เหตุผลยืนยัน':'reason','ชนิด':'type','เลขที่ใบส่ง':'po',
+      'วันที่ใบส่ง':'doc_date','วันในบิล':'bill_date','วันรับบิล':'receive_date',
+      'วันนัดส่ง':'appoint_date','เลขสำคัญ':'key_number','เลขสั่งซื้อ':'order_number',
+      'เลขอื่นๆ':'other_number','จุดส่ง':'point_code','ชื่อจุดส่ง':'station_name',
+      'พื้นที่ส่ง':'area','จำนวน':'quantity','วันร้านรับ':'shop_receive_date',
+      'บริษัท(ผู้ว่าจ้าง)':'company','ภาค':'region','ศูนย์':'center',
+      'ละติจูด':'latitude','ลองกิจูด':'longitude','รัศมี':'radius',
+      'ตำแหน่งที่ยืนยัน':'confirm_location','รูปภาพ':'image',
+      'รูปลงนาม':'signature','หมายเหตุ':'remark'
+    },
+    display:{ po:'po', warehouse:'center', status:'confirm_status',
+              date:'confirm_date', point:'point_code', station:'station_name' },
+    mapStatus: s => {
       if (!s) return 'PENDING';
       if (s.includes('ส่งเสร็จ')) return 'SUCCESS';
-      if (s === 'ส่งไม่ได้' || s.includes('คืน')) return 'FAILED';
+      if (s==='ส่งไม่ได้'||s.includes('คืน')) return 'FAILED';
       return 'PENDING';
     }
   },
   Me2n: {
-    table: 'me2n_data',
-    label: 'Me2n',
-    color: '#6f42c1',
-    getRows: (data) => data.map(r => ({
-      po:              String(r['Purchasing Document'] || ''),
-      warehouse:       String(r['Plant']               || ''),
-      status:          Number(r['Still to be delivered (qty)'] || 0) === 0 ? 'ส่งครบ' : 'ยังค้างส่ง',
-      delivery_date:   r['Document Date'] ? String(r['Document Date']) : null,
-      point_code:      String(r['Purchasing Group']    || ''),
-      station_name:    String(r['Short Text']          || ''),
-    })),
-    mapStatus: (s) => {
-      if (!s) return 'PENDING';
-      if (s === 'ส่งครบ') return 'SUCCESS';
-      return 'PENDING';
+    table:'me2n_data', label:'Me2n', color:'#6f42c1', headerRow:0,
+    colMap:{
+      'Req. Tracking Number':'req_tracking_number','Purchasing Document':'purchasing_document',
+      'Item':'item','Purchasing Doc. Type':'doc_type','Purch. doc. category':'doc_category',
+      'Purchasing Group':'purchasing_group','PO history/release documentation':'po_history',
+      'Document Date':'document_date','Vendor/supplying plant':'vendor','Material':'material',
+      'Short Text':'short_text','Material Group':'material_group',
+      'Deletion indicator':'deletion_indicator','Item Category':'item_category',
+      'Acct Assignment Cat.':'acct_assignment','Plant':'plant',
+      'Storage Location':'storage_location','Order Quantity':'order_quantity',
+      'Order Unit':'order_unit','Quantity in SKU':'quantity_in_sku',
+      'Stockkeeping unit':'stockkeeping_unit','Net price':'net_price','Currency':'currency',
+      'Price unit':'price_unit','Target Quantity':'target_quantity',
+      'Open Target Quantity':'open_target_quantity',
+      'Still to be delivered (qty)':'still_deliver_qty',
+      'Still to be delivered (value)':'still_deliver_value',
+      'Still to be invoiced (qty)':'still_invoice_qty',
+      'Still to be invoiced (val.)':'still_invoice_value',
+      'No. of Positions':'no_of_positions'
+    },
+    display:{ po:'purchasing_document', warehouse:'plant', status:'still_deliver_qty',
+              date:'document_date', point:'purchasing_group', station:'short_text' },
+    mapStatus: (s, row) => {
+      const qty = parseFloat(row?.still_deliver_qty || '0');
+      return qty === 0 ? 'SUCCESS' : 'PENDING';
     }
   },
   MB51: {
-    table: 'mb51_data',
-    label: 'MB51',
-    color: '#495057',
-    getRows: (data) => data.map(r => ({
-      po:              String(r['Purchase order']      || ''),
-      warehouse:       String(r['Plant']               || ''),
-      status:          String(r['Movement Type Text']  || ''),
-      delivery_date:   r['Posting Date'] ? String(r['Posting Date']) : null,
-      point_code:      String(r['Storage Location']    || ''),
-      station_name:    String(r['Material Description']|| ''),
-    })),
-    mapStatus: (s) => {
+    table:'mb51_data', label:'MB51', color:'#495057', headerRow:0,
+    colMap:{
+      'Document Date':'document_date','Posting Date':'posting_date',
+      'Material':'material','Material Description':'material_description',
+      'Plant':'plant','Receiving plant':'receiving_plant',
+      'Storage Location':'storage_location','Valuation type':'valuation_type',
+      'Bill of Lading':'bill_of_lading','Movement type':'movement_type',
+      'Movement Type Text':'movement_type_text','Material Document':'material_document',
+      'Material Doc.Item':'material_doc_item','Material Doc. Year':'material_doc_year',
+      'Qty in unit of entry':'qty_in_unit_entry','Unit of Entry':'unit_of_entry',
+      'Quantity':'quantity','Base Unit of Measure':'base_unit',
+      'Amt.in loc.cur.':'amount','Purchase order':'purchase_order',
+      'Item':'item','Vendor':'vendor','G/L Account':'gl_account',
+      'Order':'order_ref','Cost Center':'cost_center','Reference':'reference',
+      'Document Header Text':'doc_header_text','Unloading Point':'unloading_point',
+      'Text':'text','Customer':'customer','Entry Date':'entry_date',
+      'Time of Entry':'time_of_entry','User Name':'user_name'
+    },
+    display:{ po:'purchase_order', warehouse:'plant', status:'movement_type_text',
+              date:'posting_date', point:'storage_location', station:'material_description' },
+    mapStatus: s => {
       if (!s) return 'PENDING';
-      if (s === 'GR goods receipt') return 'SUCCESS';
+      if (s==='GR goods receipt') return 'SUCCESS';
       return 'PENDING';
     }
   }
 };
 
-// =============================================
-// 🔐 AUTH
-// =============================================
+// ============================================================
+// STATE
+// ============================================================
 let currentUser = null;
+let masterData = [], activeData = [], searchResults = [], currentDisplay = [];
+let selectedSources = Object.keys(SOURCES);
+let selectedWarehouse = 'ALL';
+let renderLimit = 50;
+const LOAD_STEP = 50;
+let searchTimer = null;
 
+// ============================================================
+// LOGIN
+// ============================================================
 async function handleLogin(e) {
   e.preventDefault();
   const code = document.getElementById('loginId').value.trim();
-  const btn  = document.getElementById('btnLogin');
-  const msg  = document.getElementById('loginMsg');
-
+  const btn = document.getElementById('btnLogin');
+  const msg = document.getElementById('loginMsg');
   btn.disabled = true;
   btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> รอสักครู่...';
   msg.innerText = '';
-
   const { data, error } = await db.from('users').select('*').eq('code', code).single();
-
   if (error || !data) {
-    msg.innerText = 'รหัสผ่านไม่ถูกต้อง';
-    btn.disabled = false;
-    btn.innerText = 'ตรวจสอบสิทธิ์';
+    msg.innerText = 'รหัสไม่ถูกต้อง';
+    btn.disabled = false; btn.innerText = 'ตรวจสอบสิทธิ์';
     return;
   }
-
   currentUser = data;
   document.getElementById('userRoleDisplay').innerText = data.role.toUpperCase();
-
   if (data.warehouse) {
     document.getElementById('userWarehouseBadge').style.display = 'inline-block';
     document.getElementById('userWarehouseDisplay').innerText = data.warehouse;
     selectedWarehouse = data.warehouse;
   }
-
-  if (data.role === 'admin') {
-    document.getElementById('headerUploadBtn').style.display = 'inline-block';
-  }
-
+  if (data.role === 'admin') document.getElementById('headerUploadBtn').style.display = 'inline-block';
   document.getElementById('loginOverlay').style.display = 'none';
   document.getElementById('mainApp').style.display = 'block';
   fetchAllData();
 }
-
 function logout() { location.reload(); }
 
-// =============================================
-// 📥 FETCH DATA
-// =============================================
-let masterData       = [];
-let activeSourceData = [];
-let activeResults    = [];
-let currentDisplay   = [];
-let selectedSources  = ['CHV', 'MRC', 'EX-Godown', 'Me2n', 'MB51'];
-let selectedWarehouse = 'ALL';
-let renderLimit      = 50;
-const LOAD_STEP      = 50;
-let searchTimer      = null;
-
+// ============================================================
+// FETCH
+// ============================================================
 async function fetchAllData() {
   document.getElementById('loader').style.display = 'block';
   document.getElementById('resultSection').style.display = 'none';
   masterData = [];
-
-  const fetches = Object.entries(SOURCE_CONFIG).map(async ([sourceKey, cfg]) => {
-    const { data, error } = await db.from(cfg.table).select('*').order('uploaded_at', { ascending: false });
-    if (error) { console.error(`Error fetching ${sourceKey}:`, error); return; }
-    if (!data || data.length === 0) return;
-
-    // หา uploaded_at ล่าสุด
+  const promises = Object.entries(SOURCES).map(async ([key, cfg]) => {
+    const { data, error } = await db.from(cfg.table).select('*').order('uploaded_at', { ascending:false });
+    if (error || !data?.length) return;
     if (data[0]?.uploaded_at) {
-      const d = new Date(data[0].uploaded_at);
-      document.getElementById('lastUpdateDisplay').innerText = d.toLocaleString('th-TH');
+      document.getElementById('lastUpdateDisplay').innerText = new Date(data[0].uploaded_at).toLocaleString('th-TH');
     }
-
-    data.forEach(row => {
-      masterData.push({
-        source:        sourceKey,
-        po:            row.po            || '-',
-        warehouse:     row.warehouse     || '-',
-        status:        row.status        || '-',
-        delivery_date: row.delivery_date || null,
-        point_code:    row.point_code    || '-',
-        station_name:  row.station_name  || '-',
-      });
-    });
+    data.forEach(row => masterData.push({ _source:key, ...row }));
   });
-
-  await Promise.all(fetches);
-
+  await Promise.all(promises);
   document.getElementById('loader').style.display = 'none';
   document.getElementById('resultSection').style.display = 'block';
   updateView();
 }
 
-// =============================================
-// 🔍 FILTER & SEARCH
-// =============================================
+// ============================================================
+// HELPERS
+// ============================================================
+function getVal(row, field) {
+  const cfg = SOURCES[row._source];
+  const col = cfg?.display[field];
+  return col ? (String(row[col] ?? '').trim() || '-') : '-';
+}
+function getStatus(row) {
+  const cfg = SOURCES[row._source];
+  const col = cfg?.display.status;
+  const val = String(row[col] ?? '').trim();
+  return cfg?.mapStatus(val, row) || 'PENDING';
+}
+
+// ============================================================
+// FILTER / SEARCH
+// ============================================================
 function toggleSource(src, btn) {
   btn.classList.toggle('active');
-  if (selectedSources.includes(src)) {
-    selectedSources = selectedSources.filter(s => s !== src);
-  } else {
-    selectedSources.push(src);
-  }
+  if (selectedSources.includes(src)) selectedSources = selectedSources.filter(s => s !== src);
+  else selectedSources.push(src);
   updateView();
 }
-
-function debounceSearch() {
-  clearTimeout(searchTimer);
-  searchTimer = setTimeout(performSearch, 400);
-}
-
+function debounceSearch() { clearTimeout(searchTimer); searchTimer = setTimeout(performSearch, 400); }
 function performSearch() {
   const kw = document.getElementById('searchInput').value.toLowerCase().trim();
-  activeSourceData = masterData.filter(r => selectedSources.includes(r.source));
-
+  activeData = masterData.filter(r => selectedSources.includes(r._source));
   if (kw) {
-    const terms = kw.split(/[\s,]+/).filter(t => t.length > 0);
-    activeResults = activeSourceData.filter(row => {
+    const terms = kw.split(/[\s,]+/).filter(t => t);
+    searchResults = activeData.filter(row => {
       const str = Object.values(row).join(' ').toLowerCase();
       return terms.some(t => str.includes(t));
     });
-  } else {
-    activeResults = activeSourceData;
-  }
-
+  } else { searchResults = activeData; }
   createWarehouseButtons();
   applyWarehouseFilter();
 }
-
 function updateView() {
-  activeSourceData = masterData.filter(r => selectedSources.includes(r.source));
-  activeResults    = activeSourceData;
+  activeData = masterData.filter(r => selectedSources.includes(r._source));
+  searchResults = activeData;
   createWarehouseButtons();
   applyWarehouseFilter();
 }
-
 function createWarehouseButtons() {
   const counts = {};
-  activeResults.forEach(r => {
-    const k = r.warehouse;
-    if (k && k !== '-') counts[k] = (counts[k] || 0) + 1;
+  searchResults.forEach(r => {
+    const w = getVal(r, 'warehouse');
+    if (w && w !== '-') counts[w] = (counts[w] || 0) + 1;
   });
-
   const keys = Object.keys(counts).sort();
-  let html = `<button class="warehouse-btn ${selectedWarehouse === 'ALL' ? 'active' : ''}" onclick="clickWarehouse('ALL',this)">All <span class="count-badge">${activeResults.length}</span></button>`;
+  let html = `<button class="warehouse-btn ${selectedWarehouse==='ALL'?'active':''}" onclick="clickWarehouse('ALL',this)">All <span class="count-badge">${searchResults.length}</span></button>`;
   keys.forEach(k => {
-    const isActive = String(k) === String(selectedWarehouse) ? 'active' : '';
-    html += `<button class="warehouse-btn ${isActive}" onclick="clickWarehouse('${k}',this)">${k} <span class="count-badge">${counts[k]}</span></button>`;
+    const a = String(k) === String(selectedWarehouse) ? 'active' : '';
+    html += `<button class="warehouse-btn ${a}" onclick="clickWarehouse('${k}',this)">${k} <span class="count-badge">${counts[k]}</span></button>`;
   });
   document.getElementById('filterButtonContainer').innerHTML = html;
 }
-
 function clickWarehouse(key, btn) {
   document.querySelectorAll('.warehouse-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   selectedWarehouse = key;
   applyWarehouseFilter();
 }
-
 function applyWarehouseFilter() {
-  if (selectedWarehouse === 'ALL') {
-    currentDisplay = activeResults;
-  } else {
-    currentDisplay = activeResults.filter(r => String(r.warehouse) === String(selectedWarehouse));
-  }
+  currentDisplay = selectedWarehouse === 'ALL'
+    ? searchResults
+    : searchResults.filter(r => String(getVal(r,'warehouse')) === String(selectedWarehouse));
   renderLimit = LOAD_STEP;
   renderCards();
 }
 
-// =============================================
-// 🃏 RENDER CARDS
-// =============================================
-function getStatusBucket(source, status) {
-  return SOURCE_CONFIG[source]?.mapStatus(status) || 'PENDING';
-}
-
+// ============================================================
+// RENDER
+// ============================================================
 function renderCards() {
-  const noDataMsg    = document.getElementById('noDataMessage');
-  const cardContainer = document.getElementById('cardContainer');
-
-  if (currentDisplay.length === 0) {
-    cardContainer.style.display = 'none';
+  const noMsg = document.getElementById('noDataMessage');
+  const cc = document.getElementById('cardContainer');
+  if (!currentDisplay.length) {
+    cc.style.display = 'none';
     document.getElementById('loadMoreBtn').style.display = 'none';
-    noDataMsg.style.display = 'block';
+    noMsg.style.display = 'block';
     const kw = document.getElementById('searchInput').value;
-    noDataMsg.innerHTML = kw
+    noMsg.innerHTML = kw
       ? `<div class="no-data-alert"><i class="fas fa-search fa-2x mb-3 text-muted"></i><br>ไม่พบข้อมูลที่ค้นหา</div>`
-      : `<div class="no-data-alert"><i class="fas fa-box-open fa-2x mb-3 text-muted"></i><br>ไม่มีข้อมูลในคลังนี้</div>`;
+      : `<div class="no-data-alert"><i class="fas fa-box-open fa-2x mb-3 text-muted"></i><br>ไม่มีข้อมูล</div>`;
     return;
   }
-
-  noDataMsg.style.display = 'none';
-  cardContainer.style.display = 'flex';
-
-  let htmlS = '', htmlP = '', htmlF = '';
-  let cntS = 0, cntP = 0, cntF = 0;
-  let showS = 0, showP = 0, showF = 0;
-
+  noMsg.style.display = 'none'; cc.style.display = 'flex';
+  let hS='',hP='',hF='',cS=0,cP=0,cF=0,sS=0,sP=0,sF=0;
   currentDisplay.forEach(row => {
-    const bucket = getStatusBucket(row.source, row.status);
-    if (bucket === 'SUCCESS') cntS++;
-    else if (bucket === 'FAILED') cntF++;
-    else cntP++;
-
-    let shouldRender = false;
-    if (bucket === 'SUCCESS' && showS < renderLimit) { shouldRender = true; showS++; }
-    else if (bucket === 'PENDING' && showP < renderLimit) { shouldRender = true; showP++; }
-    else if (bucket === 'FAILED' && showF < renderLimit) { shouldRender = true; showF++; }
-
-    if (!shouldRender) return;
-
-    const cfg    = SOURCE_CONFIG[row.source] || { label: row.source, color: '#6c757d' };
-    const cardCls = bucket === 'SUCCESS' ? 'card-border-success' : bucket === 'FAILED' ? 'card-border-danger' : 'card-border-warning';
-    const badgeCls = bucket === 'SUCCESS' ? 'bg-success' : bucket === 'FAILED' ? 'bg-danger' : 'bg-warning text-dark';
-
-    let dateVal = row.delivery_date || '-';
-    if (dateVal && dateVal !== '-') {
-      try { dateVal = new Date(dateVal).toLocaleDateString('th-TH'); } catch(e) {}
-    }
-
-    const card = `
-      <div class="po-card ${cardCls}">
+    const bucket = getStatus(row);
+    if (bucket==='SUCCESS') cS++; else if (bucket==='FAILED') cF++; else cP++;
+    let ok = false;
+    if (bucket==='SUCCESS'&&sS<renderLimit){ok=true;sS++;}
+    else if (bucket==='PENDING'&&sP<renderLimit){ok=true;sP++;}
+    else if (bucket==='FAILED'&&sF<renderLimit){ok=true;sF++;}
+    if (!ok) return;
+    const cfg = SOURCES[row._source];
+    const cls = bucket==='SUCCESS'?'card-border-success':bucket==='FAILED'?'card-border-danger':'card-border-warning';
+    const bdg = bucket==='SUCCESS'?'bg-success':bucket==='FAILED'?'bg-danger':'bg-warning text-dark';
+    const po=getVal(row,'po'), wh=getVal(row,'warehouse'), status=getVal(row,'status');
+    const point=getVal(row,'point'), station=getVal(row,'station');
+    let date=getVal(row,'date');
+    if (date&&date!=='-'){try{date=new Date(date).toLocaleDateString('th-TH');}catch(e){}}
+    const card=`
+      <div class="po-card ${cls}">
         <div class="po-header">
-          <span>PO: ${row.po}</span>
+          <span>PO: ${po}</span>
           <span class="vendor-tag" style="background:${cfg.color}">${cfg.label}</span>
         </div>
         <div class="po-body">
-          <div class="info-row"><div class="info-label">คลัง:</div><div class="info-value">${row.warehouse}</div></div>
-          <div class="info-row"><div class="info-label">รหัสจุดส่ง:</div><div class="info-value fw-bold text-primary">${row.point_code}</div></div>
-          <div class="info-row"><div class="info-label">ชื่อสถานี:</div><div class="info-value text-truncate">${row.station_name}</div></div>
-          <div class="info-row"><div class="info-label">วันที่ถึง:</div><div class="info-value">${dateVal}</div></div>
-          <div class="mt-2 d-flex justify-content: space-between align-items-center">
-            <small class="text-muted me-2">สถานะ:</small>
-            <span class="status-badge ${badgeCls}">${row.status}</span>
+          <div class="info-row"><div class="info-label">คลัง:</div><div class="info-value">${wh}</div></div>
+          <div class="info-row"><div class="info-label">รหัสจุดส่ง:</div><div class="info-value fw-bold text-primary">${point}</div></div>
+          <div class="info-row"><div class="info-label">ชื่อสถานี:</div><div class="info-value text-truncate" title="${station}">${station}</div></div>
+          <div class="info-row"><div class="info-label">วันที่:</div><div class="info-value">${date}</div></div>
+          <div class="mt-2 d-flex justify-content-between align-items-center">
+            <small class="text-muted">สถานะ:</small>
+            <span class="status-badge ${bdg}">${status}</span>
           </div>
         </div>
       </div>`;
-
-    if (bucket === 'SUCCESS') htmlS += card;
-    else if (bucket === 'FAILED') htmlF += card;
-    else htmlP += card;
+    if (bucket==='SUCCESS') hS+=card;
+    else if (bucket==='FAILED') hF+=card;
+    else hP+=card;
   });
-
-  document.getElementById('colSuccess').innerHTML = htmlS;
-  document.getElementById('colPending').innerHTML = htmlP;
-  document.getElementById('colFailed').innerHTML  = htmlF;
-  document.getElementById('countSuccess').innerText = cntS.toLocaleString();
-  document.getElementById('countPending').innerText = cntP.toLocaleString();
-  document.getElementById('countFailed').innerText  = cntF.toLocaleString();
-
-  const shown = showS + showP + showF;
-  const total = cntS + cntP + cntF;
-  const btn = document.getElementById('loadMoreBtn');
-  const txt = document.getElementById('displayCountText');
-  if (shown < total) {
-    btn.style.display = 'inline-block';
-    txt.innerText = `แสดง ${shown.toLocaleString()} จาก ${total.toLocaleString()} รายการ`;
-  } else {
-    btn.style.display = 'none';
-    txt.innerText = `แสดงครบทั้งหมด ${total.toLocaleString()} รายการ`;
-  }
+  document.getElementById('colSuccess').innerHTML=hS;
+  document.getElementById('colPending').innerHTML=hP;
+  document.getElementById('colFailed').innerHTML=hF;
+  document.getElementById('countSuccess').innerText=cS.toLocaleString();
+  document.getElementById('countPending').innerText=cP.toLocaleString();
+  document.getElementById('countFailed').innerText=cF.toLocaleString();
+  const shown=sS+sP+sF, total=cS+cP+cF;
+  const btn=document.getElementById('loadMoreBtn');
+  const txt=document.getElementById('displayCountText');
+  if (shown<total){btn.style.display='inline-block';txt.innerText=`แสดง ${shown.toLocaleString()} จาก ${total.toLocaleString()} รายการ`;}
+  else{btn.style.display='none';txt.innerText=`แสดงครบ ${total.toLocaleString()} รายการ`;}
 }
+function loadMore(){renderLimit+=LOAD_STEP;renderCards();}
 
-function loadMore() { renderLimit += LOAD_STEP; renderCards(); }
-
-// =============================================
-// 📤 UPLOAD EXCEL → SUPABASE
-// =============================================
-async function processUpload(tableName, inputEl, sourceKey) {
+// ============================================================
+// UPLOAD
+// ============================================================
+async function processUpload(tableName, sourceKey, inputEl) {
   const file = inputEl.files[0];
   if (!file) return;
-  if (!confirm(`ยืนยันอัปโหลด "${file.name}" ?\n(ข้อมูลเก่าใน ${tableName} จะถูกลบและแทนที่)`)) {
-    inputEl.value = ''; return;
-  }
-
-  // ปิด modal
+  if (!confirm(`ยืนยันอัปโหลด "${file.name}" ?\nข้อมูลเก่าใน ${tableName} จะถูกแทนที่ทั้งหมด`)){inputEl.value='';return;}
   const modal = bootstrap.Modal.getInstance(document.getElementById('uploadModal'));
   if (modal) modal.hide();
-
-  showUploadProgress('กำลังอ่านไฟล์...', '', 10);
-
+  showProgress('กำลังอ่านไฟล์...','',10);
   const reader = new FileReader();
   reader.onload = async (e) => {
     try {
-      const wb   = XLSX.read(new Uint8Array(e.target.result), { type: 'array', cellDates: true });
-      const ws   = wb.Sheets[wb.SheetNames[0]];
-
-      // หา header row (MRC/EX-Godown มี offset)
-      let headerRow = 0;
-      const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
-      if (sourceKey === 'MRC' || sourceKey === 'EX-Godown') {
-        // หาแถวที่มี 'เลขที่ใบส่ง'
-        for (let i = 0; i < raw.length; i++) {
-          if (raw[i].includes('เลขที่ใบส่ง')) { headerRow = i; break; }
-        }
+      const cfg = SOURCES[sourceKey];
+      const wb = XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:true,dateNF:'yyyy-mm-dd hh:mm:ss'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const raw = XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      const headerRowIdx = cfg.headerRow;
+      const headers = raw[headerRowIdx];
+      showProgress('กำลังแปลงข้อมูล...','',30);
+      const rows = [];
+      for (let i = headerRowIdx+1; i < raw.length; i++) {
+        const rowArr = raw[i];
+        if (!rowArr||rowArr.every(v=>v===''||v===null||v===undefined)) continue;
+        const obj = {};
+        headers.forEach((h,idx) => {
+          const col = cfg.colMap[h];
+          if (col) {
+            let val = rowArr[idx];
+            if (val instanceof Date) val = val.toISOString();
+            obj[col] = (val!==undefined&&val!==null) ? String(val) : '';
+          }
+        });
+        if (Object.values(obj).some(v=>v!=='')) rows.push(obj);
       }
-
-      const jsonData = XLSX.utils.sheet_to_json(ws, { defval: '', dateNF: 'yyyy-mm-dd', range: headerRow });
-
-      showUploadProgress('กำลังแปลงข้อมูล...', `พบ ${jsonData.length} แถว`, 30);
-
-      // Map ข้อมูล
-      const cfg  = SOURCE_CONFIG[sourceKey];
-      const rows = cfg.getRows(jsonData).filter(r => r.po && r.po !== '' && r.po !== '-');
-
-      showUploadProgress('กำลังลบข้อมูลเก่า...', '', 50);
-
-      // ลบข้อมูลเก่า
-      const { error: delErr } = await db.from(tableName).delete().neq('id', 0);
-      if (delErr) throw new Error('ลบข้อมูลเก่าไม่สำเร็จ: ' + delErr.message);
-
-      showUploadProgress('กำลังบันทึกข้อมูลใหม่...', `${rows.length} รายการ`, 70);
-
-      // Insert เป็น batch
-      const BATCH = 500;
+      showProgress('กำลังลบข้อมูลเก่า...',`พบ ${rows.length.toLocaleString()} แถว`,50);
+      const {error:delErr} = await db.from(tableName).delete().neq('id',0);
+      if (delErr) throw new Error('ลบข้อมูลเก่าไม่สำเร็จ: '+delErr.message);
+      const BATCH = 300;
       for (let i = 0; i < rows.length; i += BATCH) {
-        const batch = rows.slice(i, i + BATCH);
-        const { error: insErr } = await db.from(tableName).insert(batch);
-        if (insErr) throw new Error('Insert ไม่สำเร็จ: ' + insErr.message);
-        const pct = 70 + Math.round(((i + BATCH) / rows.length) * 25);
-        showUploadProgress('กำลังบันทึก...', `${Math.min(i+BATCH, rows.length)} / ${rows.length}`, Math.min(pct, 95));
+        const batch = rows.slice(i,i+BATCH);
+        const {error:insErr} = await db.from(tableName).insert(batch);
+        if (insErr) throw new Error('Insert ไม่สำเร็จ: '+insErr.message);
+        const pct = 55+Math.round(((i+BATCH)/rows.length)*40);
+        showProgress('กำลังบันทึก...',`${Math.min(i+BATCH,rows.length).toLocaleString()} / ${rows.length.toLocaleString()} แถว`,Math.min(pct,95));
       }
-
-      showUploadProgress('สำเร็จ! ✅', `อัปโหลด ${rows.length} รายการ`, 100);
-      setTimeout(() => {
-        document.getElementById('uploadLoader').style.display = 'none';
-        fetchAllData();
-      }, 1000);
-
-    } catch (err) {
-      document.getElementById('uploadLoader').style.display = 'none';
-      alert('❌ เกิดข้อผิดพลาด: ' + err.message);
+      showProgress('✅ สำเร็จ!',`อัปโหลด ${rows.length.toLocaleString()} รายการ`,100);
+      setTimeout(()=>{document.getElementById('uploadLoader').style.display='none';fetchAllData();},1200);
+    } catch(err) {
+      document.getElementById('uploadLoader').style.display='none';
+      alert('❌ เกิดข้อผิดพลาด: '+err.message);
     }
   };
   reader.readAsArrayBuffer(file);
-  inputEl.value = '';
+  inputEl.value='';
+}
+function showProgress(title,sub,pct){
+  document.getElementById('uploadLoader').style.display='flex';
+  document.getElementById('uploadStatusText').innerText=title;
+  document.getElementById('uploadSubText').innerText=sub;
+  document.getElementById('uploadProgressBar').style.width=pct+'%';
+  document.getElementById('uploadProgressText').innerText=pct+'%';
 }
 
-function showUploadProgress(title, sub, pct) {
-  document.getElementById('uploadLoader').style.display = 'flex';
-  document.getElementById('uploadStatusText').innerText  = title;
-  document.getElementById('uploadSubText').innerText     = sub;
-  document.getElementById('uploadProgressBar').style.width = pct + '%';
-  document.getElementById('uploadProgressText').innerText  = pct + '%';
-}
-
-// =============================================
-// 📊 EXPORT
-// =============================================
-function exportToExcel() {
-  if (!currentDisplay || currentDisplay.length === 0) { alert('ไม่มีข้อมูลที่จะ Export'); return; }
-  const headers = ['Source','PO','Warehouse','Status','Delivery Date','Point Code','Station Name'];
-  const rows = currentDisplay.map(r => [r.source, r.po, r.warehouse, r.status, r.delivery_date, r.point_code, r.station_name]);
-  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'PO_Data');
-  XLSX.writeFile(wb, 'PO_Export.xlsx');
+// ============================================================
+// EXPORT
+// ============================================================
+function exportToExcel(){
+  if (!currentDisplay?.length){alert('ไม่มีข้อมูลที่จะ Export');return;}
+  const headers=['Source','PO','Warehouse','Status','Date','Point Code','Station'];
+  const rows=currentDisplay.map(r=>[
+    SOURCES[r._source]?.label||r._source,
+    getVal(r,'po'),getVal(r,'warehouse'),getVal(r,'status'),
+    getVal(r,'date'),getVal(r,'point'),getVal(r,'station')
+  ]);
+  const ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'PO_Export');
+  XLSX.writeFile(wb,'PO_Export.xlsx');
 }
 </script>
 </body>
