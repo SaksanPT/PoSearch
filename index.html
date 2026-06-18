@@ -6,7 +6,7 @@
 <title>ระบบติดตามสถานะ PO</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -14,117 +14,251 @@
 :root{
   --bg:#f0fdf4;--primary:#57b894;--phover:#429778;--dark:#334155;--muted:#64748b;
   --shadow:0 4px 6px -1px rgba(0,0,0,0.05),0 2px 4px -1px rgba(0,0,0,0.03);
+  --shadow-md:0 8px 20px rgba(0,0,0,0.08);
   --sbg:#d1fae5;--stxt:#065f46;--wbg:#fef3c7;--wtxt:#92400e;--dbg:#fee2e2;--dtxt:#b91c1c;
+  --cbg:#ede9fe;--ctxt:#5b21b6;
 }
-body{padding:20px;background:var(--bg);font-family:'Sarabun',sans-serif;color:var(--dark);}
+*{box-sizing:border-box;}
+body{padding:20px;background:var(--bg);font-family:'Sarabun',sans-serif;color:var(--dark);min-height:100vh;}
 
-/* LOGIN */
-#loginOverlay{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#a7f3d0,#57b894);z-index:9999;display:flex;justify-content:center;align-items:center;}
-.login-card{background:white;padding:40px;border-radius:20px;box-shadow:0 20px 50px rgba(0,0,0,0.1);width:90%;max-width:400px;text-align:center;}
-.login-input{font-size:1.5rem;letter-spacing:3px;text-align:center;border-radius:12px;padding:12px;margin-bottom:20px;border:2px solid #e2e8f0;background:#f8fafc;width:100%;}
+/* ===== LOGIN ===== */
+#loginOverlay{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#a7f3d0 0%,#57b894 60%,#2d9b6e 100%);z-index:9999;display:flex;justify-content:center;align-items:center;}
+.login-card{background:white;padding:44px 40px;border-radius:24px;box-shadow:0 25px 60px rgba(0,0,0,0.15);width:90%;max-width:420px;text-align:center;}
+.login-logo{width:72px;height:72px;background:linear-gradient(135deg,#a7f3d0,#57b894);border-radius:20px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px;box-shadow:0 8px 20px rgba(87,184,148,0.3);}
+.login-input{font-size:1.6rem;letter-spacing:6px;text-align:center;border-radius:14px;padding:14px;margin-bottom:20px;border:2px solid #e2e8f0;background:#f8fafc;width:100%;transition:border-color 0.2s;}
+.login-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(87,184,148,0.15);}
 
-/* HEADER */
-.main-header{background:white;padding:15px 20px;border-radius:16px;box-shadow:var(--shadow);margin-bottom:20px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:15px;}
-h3{font-weight:700;color:var(--primary);margin:0;font-size:1.4rem;}
-.btn{border-radius:8px;font-weight:500;transition:all 0.2s;}
+/* ===== UPLOAD ANIMATION ===== */
+#uploadLoader{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(240,253,244,0.96);z-index:10000;display:none;flex-direction:column;justify-content:center;align-items:center;backdrop-filter:blur(8px);}
+.cat-scene{position:relative;width:280px;height:180px;margin-bottom:10px;}
+/* พื้นหลัง — ตู้เก็บเอกสาร */
+.cabinet{position:absolute;right:20px;bottom:0;width:80px;height:120px;background:#94a3b8;border-radius:8px 8px 4px 4px;border:3px solid #64748b;}
+.cabinet-drawer{position:absolute;width:60px;height:22px;background:#cbd5e1;border:2px solid #94a3b8;border-radius:4px;left:7px;}
+.cabinet-drawer:nth-child(1){top:8px;}
+.cabinet-drawer:nth-child(2){top:36px;}
+.cabinet-drawer:nth-child(3){top:64px;}
+.cabinet-drawer:nth-child(4){top:92px;}
+.cabinet-handle{width:24px;height:5px;background:#64748b;border-radius:3px;position:absolute;left:50%;transform:translateX(-50%);top:50%;margin-top:-2px;}
+/* แมว */
+.cat-body{position:absolute;bottom:0;left:0;animation:catWalk 1.8s ease-in-out infinite;}
+.cat-svg{width:90px;height:90px;}
+/* ลัง */
+.box-item{position:absolute;bottom:22px;animation:boxFloat 1.8s ease-in-out infinite;}
+/* progress */
+.upload-progress-wrap{width:320px;margin-top:10px;}
+.upload-progress-bar-outer{background:#e2e8f0;border-radius:99px;height:10px;overflow:hidden;}
+.upload-progress-bar-inner{height:100%;background:linear-gradient(90deg,var(--primary),#34d399);border-radius:99px;transition:width 0.3s ease;}
+
+@keyframes catWalk{
+  0%{left:10px;transform:scaleX(1);}
+  40%{left:120px;transform:scaleX(1);}
+  45%{left:120px;transform:scaleX(1);}
+  50%{left:120px;transform:scaleX(1);}
+  90%{left:10px;transform:scaleX(-1);}
+  100%{left:10px;transform:scaleX(1);}
+}
+@keyframes boxFloat{
+  0%{left:30px;bottom:22px;opacity:1;}
+  40%{left:130px;bottom:40px;opacity:1;}
+  50%{left:140px;bottom:60px;opacity:0;}
+  51%{left:30px;bottom:22px;opacity:0;}
+  55%{left:30px;bottom:22px;opacity:1;}
+  100%{left:30px;bottom:22px;opacity:1;}
+}
+@keyframes drawerOpen{
+  0%,60%{transform:translateX(0);}
+  45%,55%{transform:translateX(12px);}
+}
+.cabinet-drawer:nth-child(2){animation:drawerOpen 1.8s ease-in-out infinite;}
+
+/* ===== HEADER ===== */
+.main-header{background:white;padding:16px 22px;border-radius:18px;box-shadow:var(--shadow);margin-bottom:20px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:15px;}
+.header-brand{display:flex;align-items:center;gap:14px;}
+.header-icon{width:48px;height:48px;background:linear-gradient(135deg,#a7f3d0,#57b894);border-radius:14px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.2rem;box-shadow:0 4px 12px rgba(87,184,148,0.3);}
+.header-title{font-weight:700;color:var(--primary);margin:0;font-size:1.35rem;line-height:1.2;}
+.header-sub{font-size:0.78rem;color:var(--muted);margin:0;}
+
+/* ===== BUTTONS ===== */
+.btn{border-radius:10px;font-weight:600;transition:all 0.2s;font-family:'Sarabun',sans-serif;}
 .btn-primary{background:var(--primary);border-color:var(--primary);}
 .btn-primary:hover{background:var(--phover);border-color:var(--phover);transform:translateY(-1px);}
+.file-input{display:none;}
 
-/* SUPPLIER */
-.supplier-btn{border:2px solid #e2e8f0;background:white;color:var(--muted);border-radius:10px;padding:8px 20px;font-weight:700;font-size:0.95rem;cursor:pointer;transition:all 0.2s;}
-.supplier-btn:hover{border-color:var(--primary);color:var(--primary);}
-.supplier-btn.active{border-color:var(--primary);background:#ecfdf5;color:var(--primary);box-shadow:0 2px 8px rgba(87,184,148,0.25);}
+/* ===== SUPPLIER ===== */
+.supplier-btn{border:2px solid #e2e8f0;background:white;color:var(--muted);border-radius:12px;padding:8px 22px;font-weight:700;font-size:0.9rem;cursor:pointer;transition:all 0.2s;font-family:'Sarabun',sans-serif;}
+.supplier-btn:hover{border-color:var(--primary);color:var(--primary);transform:translateY(-1px);}
+.supplier-btn.active{border-color:var(--primary);background:#ecfdf5;color:var(--primary);box-shadow:0 2px 10px rgba(87,184,148,0.2);}
 
-/* WAREHOUSE */
-.warehouse-btn{background:white;border:1px solid #e2e8f0;color:var(--muted);border-radius:6px;padding:4px 10px;font-size:0.8rem;font-weight:500;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;margin:2px;}
+/* ===== WAREHOUSE ===== */
+.warehouse-btn{background:white;border:1px solid #e2e8f0;color:var(--muted);border-radius:8px;padding:5px 11px;font-size:0.78rem;font-weight:600;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;margin:2px;font-family:'Sarabun',sans-serif;}
 .warehouse-btn:hover{background:#f8fafc;transform:translateY(-1px);}
-.warehouse-btn.active{background:var(--primary);color:white;border-color:var(--primary);font-weight:600;}
+.warehouse-btn.active{background:var(--primary);color:white;border-color:var(--primary);}
 .count-badge{background:rgba(0,0,0,0.08);border-radius:4px;padding:0 5px;margin-left:4px;font-size:0.8em;}
-.active .count-badge{background:rgba(255,255,255,0.25);color:white;}
+.active .count-badge{background:rgba(255,255,255,0.25);}
 
-/* STATUS COLUMNS */
-.status-header{font-weight:700;text-align:center;padding:12px;border-radius:12px;margin-bottom:15px;font-size:1rem;}
+/* ===== STATUS COLUMNS ===== */
+.status-header{font-weight:700;text-align:center;padding:12px 16px;border-radius:14px;margin-bottom:16px;font-size:0.95rem;display:flex;align-items:center;justify-content:center;gap:8px;}
 .bg-head-success{background:var(--sbg);color:var(--stxt);}
 .bg-head-warning{background:var(--wbg);color:var(--wtxt);}
 .bg-head-danger{background:var(--dbg);color:var(--dtxt);}
 
-/* CARDS */
-.po-card{background:white;border-radius:14px;box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden;border-left:5px solid #ccc;transition:all 0.2s;cursor:pointer;}
-.po-card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,0.1);}
-.card-border-success{border-left-color:#34d399!important;}
-.card-border-warning{border-left-color:#fbbf24!important;}
-.card-border-danger{border-left-color:#f87171!important;}
-
-.po-header{padding:10px 15px;background:#f8fafc;border-bottom:1px solid #f1f5f9;font-weight:700;display:flex;justify-content:space-between;align-items:center;font-size:1rem;}
-.po-body{padding:12px 15px;font-size:0.88rem;}
+/* ===== CARDS ===== */
+.po-card{background:white;border-radius:14px;box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden;border-left:5px solid #e2e8f0;transition:all 0.2s;cursor:pointer;}
+.po-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);}
+.card-success{border-left-color:#34d399!important;}
+.card-warning{border-left-color:#fbbf24!important;}
+.card-danger{border-left-color:#f87171!important;}
+.po-header{padding:10px 14px;background:#f8fafc;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;}
+.po-number{font-weight:700;font-size:0.95rem;color:var(--dark);}
+.vendor-tag{font-size:0.7rem;padding:3px 10px;border-radius:20px;color:white;font-weight:700;}
+.po-body{padding:12px 14px;font-size:0.86rem;}
 .info-row{display:flex;margin-bottom:5px;align-items:flex-start;}
-.info-label{width:115px;color:var(--muted);font-size:0.8rem;flex-shrink:0;padding-top:1px;}
+.info-label{width:110px;color:var(--muted);font-size:0.78rem;flex-shrink:0;padding-top:1px;}
 .info-value{flex:1;font-weight:500;word-break:break-word;}
+.po-footer{padding:8px 14px;background:#fafafa;border-top:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;}
+.status-pill{padding:4px 14px;border-radius:20px;font-size:0.76rem;font-weight:700;}
+.pill-success{background:var(--sbg);color:var(--stxt);}
+.pill-warning{background:var(--wbg);color:var(--wtxt);}
+.pill-danger{background:var(--dbg);color:var(--dtxt);}
+.overdue-badge{background:#fee2e2;color:#b91c1c;border-radius:8px;padding:3px 10px;font-size:0.76rem;font-weight:700;}
+.days-badge{background:var(--cbg);color:var(--ctxt);border-radius:8px;padding:3px 10px;font-size:0.76rem;font-weight:700;}
 
-.status-badge{padding:4px 12px;border-radius:20px;font-size:0.78rem;font-weight:700;}
-.badge-success{background:var(--sbg);color:var(--stxt);}
-.badge-warning{background:var(--wbg);color:var(--wtxt);}
-.badge-danger{background:var(--dbg);color:var(--dtxt);}
-.vendor-tag{font-size:0.72rem;padding:3px 10px;border-radius:6px;color:white;font-weight:700;}
-.days-badge{background:#ede9fe;color:#5b21b6;border-radius:6px;padding:2px 8px;font-size:0.78rem;font-weight:700;}
+/* ===== SEARCH ===== */
+.search-wrap{border-radius:50px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
+.search-wrap .form-control{border:none;padding:10px 4px;font-family:'Sarabun',sans-serif;font-size:0.9rem;}
+.search-wrap .form-control:focus{box-shadow:none;}
+.search-wrap .input-group-text{background:white;border:none;}
 
-/* UPLOAD */
-.upload-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.92);z-index:10000;display:none;flex-direction:column;justify-content:center;align-items:center;backdrop-filter:blur(5px);}
-.file-input{display:none;}
-.no-data-alert{text-align:center;padding:40px;color:var(--muted);background:white;border-radius:16px;margin-top:20px;box-shadow:var(--shadow);border:2px dashed #e2e8f0;}
-.load-more-btn{background:white;border:1px solid #e2e8f0;color:var(--primary);padding:8px 24px;border-radius:50px;font-weight:600;font-size:0.9rem;transition:all 0.2s;}
+/* ===== MODALS ===== */
+.modal-content{border-radius:20px!important;border:none!important;}
+.popup-item-card{background:#f8fafc;border-radius:12px;padding:14px 16px;margin-bottom:10px;border-left:3px solid var(--primary);}
+.popup-item-label{font-size:0.73rem;color:var(--muted);margin-bottom:2px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;}
+.popup-item-value{font-weight:600;font-size:0.88rem;color:var(--dark);}
+
+/* ===== ALERT POPUP ===== */
+.alert-po-card{background:white;border-radius:12px;border-left:4px solid #f87171;padding:12px 16px;margin-bottom:10px;box-shadow:var(--shadow);}
+.alert-overdue{color:#b91c1c;font-weight:700;font-size:0.8rem;}
+
+.no-data-alert{text-align:center;padding:50px 20px;color:var(--muted);background:white;border-radius:16px;box-shadow:var(--shadow);border:2px dashed #e2e8f0;}
+.load-more-btn{background:white;border:1px solid #e2e8f0;color:var(--primary);padding:10px 30px;border-radius:50px;font-weight:600;font-size:0.9rem;transition:all 0.2s;font-family:'Sarabun',sans-serif;}
 .load-more-btn:hover{background:#f8fafc;transform:scale(1.02);}
 
-/* POPUP */
-.popup-item-card{background:#f8fafc;border-radius:10px;padding:12px 15px;margin-bottom:10px;border-left:3px solid var(--primary);}
-.popup-item-label{font-size:0.75rem;color:var(--muted);margin-bottom:2px;}
-.popup-item-value{font-weight:600;font-size:0.9rem;}
-
-@media(max-width:768px){
-  body{padding:10px;}
-  .main-header{flex-direction:column;align-items:stretch;text-align:center;}
-  .col-md-4{margin-bottom:20px;}
-}
+@media(max-width:768px){body{padding:10px;}.main-header{flex-direction:column;align-items:stretch;}.col-md-4{margin-bottom:20px;}}
 </style>
 </head>
 <body>
 
-<!-- Upload Loader -->
-<div id="uploadLoader" class="upload-overlay">
-  <div class="spinner-border text-primary" style="width:3rem;height:3rem;"></div>
-  <h6 class="mt-3 fw-bold" id="uploadStatusText">กำลังอัปโหลด...</h6>
-  <small class="text-muted" id="uploadSubText"></small>
-  <div style="width:320px;margin-top:16px;">
-    <div class="progress mt-2" style="height:8px;border-radius:4px;">
-      <div id="uploadProgressBar" class="progress-bar bg-success" style="width:0%;transition:width 0.3s;"></div>
+<!-- ===== UPLOAD LOADER ===== -->
+<div id="uploadLoader">
+  <div class="cat-scene">
+    <!-- ตู้เก็บเอกสาร -->
+    <div class="cabinet">
+      <div class="cabinet-drawer"><div class="cabinet-handle"></div></div>
+      <div class="cabinet-drawer"><div class="cabinet-handle"></div></div>
+      <div class="cabinet-drawer"><div class="cabinet-handle"></div></div>
+      <div class="cabinet-drawer"><div class="cabinet-handle"></div></div>
     </div>
-    <small class="text-muted mt-1 d-block text-center" id="uploadProgressText"></small>
+    <!-- ลังเอกสาร -->
+    <div class="box-item">
+      <svg width="38" height="32" viewBox="0 0 38 32">
+        <rect x="1" y="10" width="36" height="21" rx="3" fill="#fbbf24" stroke="#d97706" stroke-width="1.5"/>
+        <rect x="1" y="10" width="36" height="8" rx="3" fill="#fde68a" stroke="#d97706" stroke-width="1.5"/>
+        <line x1="19" y1="10" x2="19" y2="31" stroke="#d97706" stroke-width="1.2"/>
+        <rect x="12" y="6" width="14" height="6" rx="2" fill="#fde68a" stroke="#d97706" stroke-width="1.2"/>
+        <text x="19" y="23" text-anchor="middle" font-size="8" fill="#92400e" font-weight="bold">PO</text>
+      </svg>
+    </div>
+    <!-- แมว -->
+    <div class="cat-body">
+      <svg class="cat-svg" viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg">
+        <!-- ลำตัว -->
+        <ellipse cx="45" cy="62" rx="22" ry="18" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+        <!-- หัว -->
+        <circle cx="45" cy="38" r="18" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+        <!-- หู -->
+        <polygon points="30,25 24,10 38,22" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+        <polygon points="60,25 66,10 52,22" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+        <polygon points="31,23 27,14 37,21" fill="#fda4af"/>
+        <polygon points="59,23 63,14 53,21" fill="#fda4af"/>
+        <!-- หน้า -->
+        <circle cx="39" cy="36" r="3.5" fill="#1e293b"/>
+        <circle cx="51" cy="36" r="3.5" fill="#1e293b"/>
+        <circle cx="40" cy="35" r="1.2" fill="white"/>
+        <circle cx="52" cy="35" r="1.2" fill="white"/>
+        <ellipse cx="45" cy="41" rx="3" ry="2" fill="#fda4af"/>
+        <!-- หนวด -->
+        <line x1="48" y1="41" x2="62" y2="38" stroke="#94a3b8" stroke-width="1.2"/>
+        <line x1="48" y1="42" x2="63" y2="43" stroke="#94a3b8" stroke-width="1.2"/>
+        <line x1="42" y1="41" x2="28" y2="38" stroke="#94a3b8" stroke-width="1.2"/>
+        <line x1="42" y1="42" x2="27" y2="43" stroke="#94a3b8" stroke-width="1.2"/>
+        <!-- แขน/อุ้งมือ -->
+        <ellipse cx="28" cy="68" rx="7" ry="5" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+        <ellipse cx="62" cy="68" rx="7" ry="5" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+        <!-- ขา -->
+        <ellipse cx="36" cy="78" rx="7" ry="5" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+        <ellipse cx="54" cy="78" rx="7" ry="5" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+        <!-- หาง -->
+        <path d="M67 72 Q82 60 78 45" stroke="#94a3b8" stroke-width="3" fill="none" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </div>
+  <div style="text-align:center;margin-bottom:6px;">
+    <span style="font-size:1.1rem;font-weight:700;color:var(--dark);" id="uploadStatusText">กำลังอัปโหลด...</span><br>
+    <small style="color:var(--muted);" id="uploadSubText">แมวกำลังจัดเอกสาร กรุณารอสักครู่</small>
+  </div>
+  <div class="upload-progress-wrap">
+    <div class="upload-progress-bar-outer">
+      <div class="upload-progress-bar-inner" id="uploadProgressBar" style="width:0%"></div>
+    </div>
+    <small style="color:var(--muted);display:block;text-align:center;margin-top:6px;" id="uploadProgressText">0%</small>
   </div>
 </div>
 
-<!-- Login -->
+<!-- ===== LOGIN ===== -->
 <div id="loginOverlay">
   <div class="login-card">
-    <div class="mb-4">
-      <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex p-3 mb-3">
-        <i class="fas fa-cubes fa-2x text-success"></i>
-      </div>
-      <h3 class="text-dark fw-bold">เข้าสู่ระบบ</h3>
-      <p class="text-muted small">ระบบติดตามสถานะ PO</p>
-    </div>
+    <div class="login-logo"><i class="fas fa-boxes fa-2x" style="color:white;"></i></div>
+    <h4 class="fw-bold text-dark mb-1">เข้าสู่ระบบ</h4>
+    <p class="text-muted small mb-4">ระบบติดตามสถานะ PO</p>
     <form onsubmit="handleLogin(event)">
-      <input type="password" id="loginId" class="login-input" placeholder="CODE" required autofocus>
-      <button type="submit" id="btnLogin" class="btn btn-primary btn-lg w-100 fw-bold">ตรวจสอบสิทธิ์</button>
+      <input type="password" id="loginId" class="login-input" placeholder="••••" required autofocus>
+      <button type="submit" id="btnLogin" class="btn btn-primary btn-lg w-100 fw-bold" style="border-radius:14px;padding:12px;">
+        <i class="fas fa-sign-in-alt me-2"></i>ตรวจสอบสิทธิ์
+      </button>
     </form>
     <div id="loginMsg" class="mt-3 text-danger fw-bold small"></div>
   </div>
 </div>
 
-<!-- PO Detail Modal -->
+<!-- ===== ALERT POPUP (ค้างรับ) ===== -->
+<div class="modal fade" id="alertModal" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width:560px;">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0 px-4 pt-4" style="background:#fff5f5;border-radius:20px 20px 0 0;">
+        <div>
+          <h5 class="modal-title fw-bold" style="color:#b91c1c;">
+            <i class="fas fa-exclamation-triangle me-2"></i>แจ้งเตือน — PO ค้างรับเกินกำหนด
+          </h5>
+          <small class="text-muted">กรุณาติดตามรายการด้านล่าง</small>
+        </div>
+      </div>
+      <div class="modal-body px-4 pb-2">
+        <div id="alertContent"></div>
+      </div>
+      <div class="modal-footer border-0 px-4 pb-4">
+        <button class="btn btn-primary w-100 py-2 fw-bold" style="border-radius:12px;" data-bs-dismiss="modal">
+          รับทราบแล้ว <i class="fas fa-check ms-1"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PO DETAIL MODAL ===== -->
 <div class="modal fade" id="poDetailModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
-    <div class="modal-content" style="border-radius:16px;border:none;">
-      <div class="modal-header border-0 pb-0 px-4 pt-4">
+    <div class="modal-content">
+      <div class="modal-header border-0 px-4 pt-4 pb-2">
         <div>
           <h5 class="modal-title fw-bold text-dark" id="modalPOTitle">รายละเอียด PO</h5>
           <small class="text-muted" id="modalPOSupplier"></small>
@@ -142,73 +276,59 @@ h3{font-weight:700;color:var(--primary);margin:0;font-size:1.4rem;}
   </div>
 </div>
 
-<!-- Upload Modal -->
+<!-- ===== UPLOAD MODAL ===== -->
 <div class="modal fade" id="uploadModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content" style="border-radius:16px;border:none;">
-      <div class="modal-header border-0 pb-0">
-        <h5 class="modal-title fw-bold ps-2"><i class="fas fa-cloud-upload-alt text-primary"></i> อัปโหลดข้อมูล</h5>
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0 px-4 pt-4">
+        <h5 class="modal-title fw-bold"><i class="fas fa-cloud-upload-alt text-primary me-2"></i>อัปโหลดข้อมูล</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body p-4">
         <p class="text-muted small mb-4 text-center">เลือกไฟล์ .xlsx — ข้อมูลเก่าจะถูกแทนที่ทั้งหมด</p>
-        <div class="d-grid gap-3">
+        <div class="d-grid gap-2">
           <input type="file" id="file_CHV"     class="file-input" accept=".xlsx,.xls" onchange="processUpload('chv_data','CHV',this)">
-          <button class="btn btn-outline-primary text-start p-3" onclick="document.getElementById('file_CHV').click()">
-            <i class="fas fa-file-excel me-2"></i> อัปโหลด <b>Chevron (CHV_DATA)</b>
-          </button>
+          <button class="btn btn-outline-primary text-start p-3" onclick="document.getElementById('file_CHV').click()"><i class="fas fa-file-excel me-2"></i>อัปโหลด <b>Chevron (CHV_DATA)</b></button>
           <input type="file" id="file_MRC"     class="file-input" accept=".xlsx,.xls" onchange="processUpload('mrc_data','MRC',this)">
-          <button class="btn btn-outline-success text-start p-3" onclick="document.getElementById('file_MRC').click()">
-            <i class="fas fa-file-excel me-2"></i> อัปโหลด <b>Miracle (MRC_DATA)</b>
-          </button>
+          <button class="btn btn-outline-success text-start p-3" onclick="document.getElementById('file_MRC').click()"><i class="fas fa-file-excel me-2"></i>อัปโหลด <b>Miracle (MRC_DATA)</b></button>
           <input type="file" id="file_EXG"     class="file-input" accept=".xlsx,.xls" onchange="processUpload('exgodown_data','EX-Godown',this)">
-          <button class="btn btn-outline-warning text-dark text-start p-3" onclick="document.getElementById('file_EXG').click()">
-            <i class="fas fa-file-excel me-2"></i> อัปโหลด <b>PSP (EX-Godown_Data)</b>
-          </button>
+          <button class="btn btn-outline-warning text-dark text-start p-3" onclick="document.getElementById('file_EXG').click()"><i class="fas fa-file-excel me-2"></i>อัปโหลด <b>PSP (EX-Godown_Data)</b></button>
           <input type="file" id="file_ME2N"    class="file-input" accept=".xlsx,.xls" onchange="processUpload('me2n_data','Me2n',this)">
-          <button class="btn btn-outline-secondary text-start p-3" onclick="document.getElementById('file_ME2N').click()">
-            <i class="fas fa-file-excel me-2"></i> อัปโหลด <b>ME2N</b>
-          </button>
+          <button class="btn btn-outline-secondary text-start p-3" onclick="document.getElementById('file_ME2N').click()"><i class="fas fa-file-excel me-2"></i>อัปโหลด <b>ME2N</b></button>
           <input type="file" id="file_MB51"    class="file-input" accept=".xlsx,.xls" onchange="processUpload('mb51_data','MB51',this)">
-          <button class="btn btn-outline-dark text-start p-3" onclick="document.getElementById('file_MB51').click()">
-            <i class="fas fa-file-excel me-2"></i> อัปโหลด <b>MB51</b>
-          </button>
+          <button class="btn btn-outline-dark text-start p-3" onclick="document.getElementById('file_MB51').click()"><i class="fas fa-file-excel me-2"></i>อัปโหลด <b>MB51</b></button>
           <input type="file" id="file_STATION" class="file-input" accept=".xlsx,.xls" onchange="processUpload('station_data','STATION',this)">
-          <button class="btn btn-outline-info text-start p-3" onclick="document.getElementById('file_STATION').click()">
-            <i class="fas fa-file-excel me-2"></i> อัปโหลด <b>Master Station</b>
-          </button>
+          <button class="btn btn-outline-info text-start p-3" onclick="document.getElementById('file_STATION').click()"><i class="fas fa-file-excel me-2"></i>อัปโหลด <b>Master Station</b></button>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Main App -->
-<div id="mainApp" class="container-fluid" style="max-width:1400px;display:none;">
+<!-- ===== MAIN APP ===== -->
+<div id="mainApp" class="container-fluid" style="max-width:1440px;display:none;">
 
   <!-- Header -->
   <div class="main-header">
-    <div class="d-flex align-items-center gap-3">
-      <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
-        <i class="fas fa-search-location fa-lg"></i>
-      </div>
+    <div class="header-brand">
+      <div class="header-icon"><i class="fas fa-search-location"></i></div>
       <div>
-        <h3 class="mb-0">ติดตามสถานะ PO</h3>
-        <small class="text-muted">ระบบตรวจสอบการจัดส่งสินค้า</small>
+        <p class="header-title mb-0">ติดตามสถานะ PO</p>
+        <p class="header-sub">ระบบตรวจสอบการจัดส่งสินค้า</p>
       </div>
     </div>
     <div class="d-flex align-items-center gap-2 flex-wrap">
-      <span class="badge bg-light text-dark border px-3 py-2">
+      <span class="badge bg-light text-dark border px-3 py-2 fw-normal">
         <i class="fas fa-user-circle text-muted me-1"></i><span id="userRoleDisplay">-</span>
       </span>
-      <span class="badge bg-white text-dark border px-3 py-2" id="userWarehouseBadge" style="display:none;">
+      <span class="badge bg-white text-dark border px-3 py-2 fw-normal" id="userWarehouseBadge" style="display:none;">
         <i class="fas fa-warehouse text-primary me-1"></i><span id="userWarehouseDisplay"></span>
       </span>
       <button id="headerUploadBtn" class="btn btn-primary btn-sm px-3" style="display:none;" data-bs-toggle="modal" data-bs-target="#uploadModal">
-        <i class="fas fa-cloud-upload-alt me-1"></i> อัปโหลด
+        <i class="fas fa-cloud-upload-alt me-1"></i>อัปโหลด
       </button>
-      <button class="btn btn-sm px-3 text-white fw-bold" onclick="exportToExcel()" style="background:#10b981;border:none;border-radius:8px;">
-        <i class="fas fa-file-download me-1"></i> Export
+      <button class="btn btn-sm px-3 text-white fw-bold" onclick="exportToExcel()" style="background:#10b981;border:none;">
+        <i class="fas fa-file-download me-1"></i>Export
       </button>
       <button class="btn btn-sm btn-outline-danger px-3" onclick="logout()">
         <i class="fas fa-sign-out-alt"></i>
@@ -217,43 +337,40 @@ h3{font-weight:700;color:var(--primary);margin:0;font-size:1.4rem;}
   </div>
 
   <!-- Filter Panel -->
-  <div class="card p-4 mb-4 border-0" style="border-radius:16px;box-shadow:var(--shadow);">
-    <div class="row g-4">
+  <div class="card border-0 p-4 mb-4" style="border-radius:18px;box-shadow:var(--shadow);">
+    <div class="row g-4 align-items-start">
       <div class="col-md-4">
-        <label class="form-label text-muted fw-bold small text-uppercase mb-3">Supplier</label>
+        <label class="form-label text-muted fw-bold small text-uppercase mb-2">Supplier</label>
         <div class="d-flex flex-wrap gap-2">
           <button class="supplier-btn active" id="btn_CHV" onclick="toggleSupplier('CHV',this)">Chevron</button>
           <button class="supplier-btn active" id="btn_MRC" onclick="toggleSupplier('MRC',this)">Miracle</button>
           <button class="supplier-btn active" id="btn_PSP" onclick="toggleSupplier('PSP',this)">PSP</button>
         </div>
         <div class="mt-3">
-          <small class="text-muted" style="font-size:0.8rem;">
-            <i class="far fa-clock me-1 text-primary"></i> อัปเดตล่าสุด: <span id="lastUpdateDisplay" class="fw-bold text-dark">-</span>
+          <small class="text-muted" style="font-size:0.78rem;">
+            <i class="far fa-clock me-1 text-primary"></i>อัปเดตล่าสุด: <span id="lastUpdateDisplay" class="fw-bold text-dark">-</span>
           </small>
         </div>
       </div>
       <div class="col-md-8">
-        <label class="form-label text-muted fw-bold small text-uppercase mb-3">Warehouse (คลัง)</label>
+        <label class="form-label text-muted fw-bold small text-uppercase mb-2">Warehouse (คลัง)</label>
         <div id="filterButtonContainer" class="d-flex flex-wrap">
           <span class="text-muted fst-italic small">Loading...</span>
         </div>
       </div>
     </div>
-    <hr class="my-4" style="opacity:0.1;">
+    <hr class="my-3" style="opacity:0.08;">
     <div class="row g-2 align-items-center">
       <div class="col-md-9">
-        <div class="input-group shadow-sm" style="border-radius:50px;overflow:hidden;">
-          <span class="input-group-text bg-white border-0 ps-3"><i class="fas fa-search text-muted"></i></span>
-          <input type="text" id="searchInput" class="form-control border-0 py-2"
-            placeholder="พิมพ์เลข PO, ชื่อสถานี, สถานะ, วันที่..." oninput="debounceSearch()">
-          <button class="btn btn-link text-muted pe-3" onclick="clearSearch()">
-            <i class="fas fa-times"></i>
-          </button>
+        <div class="input-group search-wrap">
+          <span class="input-group-text ps-3"><i class="fas fa-search text-muted"></i></span>
+          <input type="text" id="searchInput" class="form-control" placeholder="พิมพ์เลข PO, ชื่อสถานี, สถานะ, วันที่..." oninput="debounceSearch()">
+          <button class="btn btn-link text-muted pe-3" onclick="clearSearch()"><i class="fas fa-times"></i></button>
         </div>
       </div>
       <div class="col-md-3">
         <button class="btn btn-primary w-100 py-2 rounded-pill fw-bold" onclick="performSearch()">
-          <i class="fas fa-search me-1"></i> ค้นหา
+          <i class="fas fa-search me-1"></i>ค้นหา
         </button>
       </div>
     </div>
@@ -271,26 +388,26 @@ h3{font-weight:700;color:var(--primary);margin:0;font-size:1.4rem;}
     <div id="cardContainer" class="row g-4">
       <div class="col-md-4">
         <div class="status-header bg-head-success">
-          <i class="fas fa-check-circle me-1"></i> สำเร็จ (<span id="countSuccess">0</span>)
+          <i class="fas fa-check-circle"></i> สำเร็จ (<span id="countSuccess">0</span>)
         </div>
         <div id="colSuccess"></div>
       </div>
       <div class="col-md-4">
         <div class="status-header bg-head-warning">
-          <i class="fas fa-truck me-1"></i> ระหว่างทาง (<span id="countPending">0</span>)
+          <i class="fas fa-truck"></i> ระหว่างทาง (<span id="countPending">0</span>)
         </div>
         <div id="colPending"></div>
       </div>
       <div class="col-md-4">
         <div class="status-header bg-head-danger">
-          <i class="fas fa-times-circle me-1"></i> ไม่สำเร็จ (<span id="countFailed">0</span>)
+          <i class="fas fa-exclamation-circle"></i> ค้างรับ/จัดส่งไม่สำเร็จ (<span id="countFailed">0</span>)
         </div>
         <div id="colFailed"></div>
       </div>
     </div>
     <div class="text-center mt-4 mb-5">
       <button id="loadMoreBtn" class="load-more-btn shadow-sm" style="display:none;" onclick="loadMore()">
-        <i class="fas fa-chevron-down me-1"></i> แสดงเพิ่ม
+        <i class="fas fa-chevron-down me-1"></i>แสดงเพิ่ม
       </button>
       <div id="displayCountText" class="text-muted mt-2 small"></div>
     </div>
@@ -308,47 +425,72 @@ const SUPPLIERS = {
   PSP: { view:'view_exgodown', label:'PSP',     color:'#e67e22' },
 };
 
-// แปลง status → bucket และ label ภาษาไทย
-function mapStatus(source, status) {
-  if (!status) return 'PENDING';
-  const s = status.toString().trim();
-  if (source === 'CHV') {
-    if (s === 'Pass' || s === 'Completed') return 'SUCCESS';
-    if (s === 'Fail' || s === 'Rejected')  return 'FAILED';
+// ============================================================
+// STATUS LOGIC
+// ============================================================
+function mapBucket(row) {
+  const src    = row._source;
+  const status = (row.status||'').toString().trim();
+  const recv   = row.receive_date||'';
+  const start  = row.start_delivery_date||'';
+  const days   = row.days_remaining;
+
+  // ถ้ามีวันทำรับ และ start <= receive → สำเร็จ
+  if (recv && recv !== '-' && recv !== '') {
+    // ถ้า start_delivery_date หลัง receive_date → ถือว่ายังไม่สำเร็จ
+    if (start && start !== '-' && start > recv) {
+      // ไม่นับว่าทำรับแล้ว
+    } else {
+      return 'SUCCESS';
+    }
+  }
+
+  // มี days_remaining (ค้างเกินกำหนด) → ค้างรับ
+  if (days && parseInt(days) >= 0) return 'OVERDUE';
+
+  // CHV
+  if (src === 'CHV') {
+    if (status === 'Pass' || status === 'Completed') return 'SUCCESS';
+    if (status === 'Fail' || status === 'Rejected')  return 'FAILED';
     return 'PENDING';
   }
-  if (source === 'MRC' || source === 'PSP') {
-    if (s.includes('ส่งเสร็จ')) return 'SUCCESS';
-    if (s === 'ส่งไม่ได้' || s.includes('คืน')) return 'FAILED';
-    return 'PENDING';
-  }
+  // MRC / PSP
+  if (status.includes('ส่งเสร็จ')) return 'SUCCESS';
+  if (status === 'ส่งไม่ได้' || status.includes('คืน')) return 'FAILED';
   return 'PENDING';
 }
-function bucketLabel(bucket) {
-  if (bucket === 'SUCCESS') return 'สำเร็จ';
-  if (bucket === 'FAILED')  return 'ไม่สำเร็จ';
+
+function bucketLabel(b){
+  if (b==='SUCCESS') return 'สำเร็จ';
+  if (b==='FAILED')  return 'จัดส่งไม่สำเร็จ';
+  if (b==='OVERDUE') return 'ค้างรับ';
   return 'ระหว่างทาง';
 }
-function bucketBadgeClass(bucket) {
-  if (bucket === 'SUCCESS') return 'badge-success';
-  if (bucket === 'FAILED')  return 'badge-danger';
-  return 'badge-warning';
+function bucketPillClass(b){
+  if (b==='SUCCESS') return 'pill-success';
+  if (b==='FAILED'||b==='OVERDUE') return 'pill-danger';
+  return 'pill-warning';
+}
+function bucketCardClass(b){
+  if (b==='SUCCESS') return 'card-success';
+  if (b==='FAILED'||b==='OVERDUE') return 'card-danger';
+  return 'card-warning';
 }
 
 // UPLOAD CONFIG
 const UPLOAD_CONFIG = {
-  CHV:{ headerRow:0, colMap:{'Delivery':'delivery','Item No.':'item_no','Material':'material','Material Description':'material_description','Delivery Quantity':'delivery_quantity','Delivery Quantity Unit':'delivery_quantity_unit','Planned GI Date':'planned_gi_date','Ship-to Number':'ship_to_number','Shipping Instructions':'shipping_instructions','Ship-To Name':'ship_to_name','Ship-to Address':'ship_to_address','Sales Order/STO Number':'sales_order_sto','Created Date':'created_date','Customer PO Number':'customer_po_number','Sold To Party':'sold_to_party','Sold To Party Name':'sold_to_party_name','Delivery Volume':'delivery_volume','Delivery Volume Unit':'delivery_volume_unit','Truck Type':'truck_type','Depart from RTPL':'depart_from_rtpl','Inv. Date':'inv_date','SLA':'sla','Actual Delivery date':'actual_delivery_date','Status(Complete/Incomplete)':'status','Remark':'remark'}},
-  MRC:{ headerRow:1, colMap:{'#':'seq','T':'t','สถานะจัดส่ง':'delivery_status','M':'m','สถานะยืนยัน':'confirm_status','วันที่ยืนยัน':'confirm_date','เหตุผลยืนยัน':'reason','ชนิด':'type','เลขที่ใบส่ง':'po','ชื่อจุดส่ง':'station_name','พื้นที่ส่ง':'area','จำนวน':'quantity','บริษัท(ผู้ว่าจ้าง)':'company','ภาค':'region','ศูนย์':'center','หมายเหตุ':'remark'}},
-  'EX-Godown':{ headerRow:2, colMap:{'#':'seq','T':'t','สถานะจัดส่ง':'delivery_status','M':'m','สถานะยืนยัน':'confirm_status','วันที่ยืนยัน':'confirm_date','เหตุผลยืนยัน':'reason','ชนิด':'type','เลขที่ใบส่ง':'po','วันที่ใบส่ง':'doc_date','วันในบิล':'bill_date','วันรับบิล':'receive_date','วันนัดส่ง':'appoint_date','เลขสำคัญ':'key_number','เลขสั่งซื้อ':'order_number','เลขอื่นๆ':'other_number','จุดส่ง':'point_code','ชื่อจุดส่ง':'station_name','พื้นที่ส่ง':'area','จำนวน':'quantity','วันร้านรับ':'shop_receive_date','บริษัท(ผู้ว่าจ้าง)':'company','ภาค':'region','ศูนย์':'center','ละติจูด':'latitude','ลองกิจูด':'longitude','รัศมี':'radius','ตำแหน่งที่ยืนยัน':'confirm_location','รูปภาพ':'image','รูปลงนาม':'signature','หมายเหตุ':'remark'}},
-  Me2n:{ headerRow:0, colMap:{'Req. Tracking Number':'req_tracking_number','Purchasing Document':'purchasing_document','Item':'item','Purchasing Doc. Type':'doc_type','Purch. doc. category':'doc_category','Purchasing Group':'purchasing_group','PO history/release documentation':'po_history','Document Date':'document_date','Vendor/supplying plant':'vendor','Material':'material','Short Text':'short_text','Material Group':'material_group','Deletion indicator':'deletion_indicator','Item Category':'item_category','Acct Assignment Cat.':'acct_assignment','Plant':'plant','Storage Location':'storage_location','Order Quantity':'order_quantity','Order Unit':'order_unit','Quantity in SKU':'quantity_in_sku','Stockkeeping unit':'stockkeeping_unit','Net price':'net_price','Currency':'currency','Price unit':'price_unit','Target Quantity':'target_quantity','Open Target Quantity':'open_target_quantity','Still to be delivered (qty)':'still_deliver_qty','Still to be delivered (value)':'still_deliver_value','Still to be invoiced (qty)':'still_invoice_qty','Still to be invoiced (val.)':'still_invoice_value','No. of Positions':'no_of_positions'}},
-  MB51:{ headerRow:0, colMap:{'Document Date':'document_date','Posting Date':'posting_date','Material':'material','Material Description':'material_description','Plant':'plant','Receiving plant':'receiving_plant','Storage Location':'storage_location','Valuation type':'valuation_type','Bill of Lading':'bill_of_lading','Movement type':'movement_type','Movement Type Text':'movement_type_text','Material Document':'material_document','Material Doc.Item':'material_doc_item','Material Doc. Year':'material_doc_year','Qty in unit of entry':'qty_in_unit_entry','Unit of Entry':'unit_of_entry','Quantity':'quantity','Base Unit of Measure':'base_unit','Amt.in loc.cur.':'amount','Purchase order':'purchase_order','Item':'item','Vendor':'vendor','G/L Account':'gl_account','Order':'order_ref','Cost Center':'cost_center','Reference':'reference','Document Header Text':'doc_header_text','Unloading Point':'unloading_point','Text':'text','Customer':'customer','Entry Date':'entry_date','Time of Entry':'time_of_entry','User Name':'user_name'}},
-  STATION:{ headerRow:0, colMap:{'SAP Code':'sap_code','SHIP_TO_CODE':'ship_to_code','รหัสสาขา':'branch_code','ชื่อสาขา':'branch_name'}}
+  CHV:{headerRow:0,colMap:{'Delivery':'delivery','Item No.':'item_no','Material':'material','Material Description':'material_description','Delivery Quantity':'delivery_quantity','Delivery Quantity Unit':'delivery_quantity_unit','Planned GI Date':'planned_gi_date','Ship-to Number':'ship_to_number','Shipping Instructions':'shipping_instructions','Ship-To Name':'ship_to_name','Ship-to Address':'ship_to_address','Sales Order/STO Number':'sales_order_sto','Created Date':'created_date','Customer PO Number':'customer_po_number','Sold To Party':'sold_to_party','Sold To Party Name':'sold_to_party_name','Delivery Volume':'delivery_volume','Delivery Volume Unit':'delivery_volume_unit','Truck Type':'truck_type','Depart from RTPL':'depart_from_rtpl','Inv. Date':'inv_date','SLA':'sla','Actual Delivery date':'actual_delivery_date','Status(Complete/Incomplete)':'status','Remark':'remark'}},
+  MRC:{headerRow:1,colMap:{'#':'seq','T':'t','สถานะจัดส่ง':'delivery_status','M':'m','สถานะยืนยัน':'confirm_status','วันที่ยืนยัน':'confirm_date','เหตุผลยืนยัน':'reason','ชนิด':'type','เลขที่ใบส่ง':'po','ชื่อจุดส่ง':'station_name','พื้นที่ส่ง':'area','จำนวน':'quantity','บริษัท(ผู้ว่าจ้าง)':'company','ภาค':'region','ศูนย์':'center','หมายเหตุ':'remark'}},
+  'EX-Godown':{headerRow:2,colMap:{'#':'seq','T':'t','สถานะจัดส่ง':'delivery_status','M':'m','สถานะยืนยัน':'confirm_status','วันที่ยืนยัน':'confirm_date','เหตุผลยืนยัน':'reason','ชนิด':'type','เลขที่ใบส่ง':'po','วันที่ใบส่ง':'doc_date','วันในบิล':'bill_date','วันรับบิล':'receive_date','วันนัดส่ง':'appoint_date','เลขสำคัญ':'key_number','เลขสั่งซื้อ':'order_number','เลขอื่นๆ':'other_number','จุดส่ง':'point_code','ชื่อจุดส่ง':'station_name','พื้นที่ส่ง':'area','จำนวน':'quantity','วันร้านรับ':'shop_receive_date','บริษัท(ผู้ว่าจ้าง)':'company','ภาค':'region','ศูนย์':'center','ละติจูด':'latitude','ลองกิจูด':'longitude','รัศมี':'radius','ตำแหน่งที่ยืนยัน':'confirm_location','รูปภาพ':'image','รูปลงนาม':'signature','หมายเหตุ':'remark'}},
+  Me2n:{headerRow:0,colMap:{'Req. Tracking Number':'req_tracking_number','Purchasing Document':'purchasing_document','Item':'item','Purchasing Doc. Type':'doc_type','Purch. doc. category':'doc_category','Purchasing Group':'purchasing_group','PO history/release documentation':'po_history','Document Date':'document_date','Vendor/supplying plant':'vendor','Material':'material','Short Text':'short_text','Material Group':'material_group','Deletion indicator':'deletion_indicator','Item Category':'item_category','Acct Assignment Cat.':'acct_assignment','Plant':'plant','Storage Location':'storage_location','Order Quantity':'order_quantity','Order Unit':'order_unit','Quantity in SKU':'quantity_in_sku','Stockkeeping unit':'stockkeeping_unit','Net price':'net_price','Currency':'currency','Price unit':'price_unit','Target Quantity':'target_quantity','Open Target Quantity':'open_target_quantity','Still to be delivered (qty)':'still_deliver_qty','Still to be delivered (value)':'still_deliver_value','Still to be invoiced (qty)':'still_invoice_qty','Still to be invoiced (val.)':'still_invoice_value','No. of Positions':'no_of_positions'}},
+  MB51:{headerRow:0,colMap:{'Document Date':'document_date','Posting Date':'posting_date','Material':'material','Material Description':'material_description','Plant':'plant','Receiving plant':'receiving_plant','Storage Location':'storage_location','Valuation type':'valuation_type','Bill of Lading':'bill_of_lading','Movement type':'movement_type','Movement Type Text':'movement_type_text','Material Document':'material_document','Material Doc.Item':'material_doc_item','Material Doc. Year':'material_doc_year','Qty in unit of entry':'qty_in_unit_entry','Unit of Entry':'unit_of_entry','Quantity':'quantity','Base Unit of Measure':'base_unit','Amt.in loc.cur.':'amount','Purchase order':'purchase_order','Item':'item','Vendor':'vendor','G/L Account':'gl_account','Order':'order_ref','Cost Center':'cost_center','Reference':'reference','Document Header Text':'doc_header_text','Unloading Point':'unloading_point','Text':'text','Customer':'customer','Entry Date':'entry_date','Time of Entry':'time_of_entry','User Name':'user_name'}},
+  STATION:{headerRow:0,colMap:{'SAP Code':'sap_code','SHIP_TO_CODE':'ship_to_code','รหัสสาขา':'branch_code','ชื่อสาขา':'branch_name'}}
 };
-const TABLE_MAP = { CHV:'chv_data', MRC:'mrc_data', 'EX-Godown':'exgodown_data', Me2n:'me2n_data', MB51:'mb51_data', STATION:'station_data' };
+const TABLE_MAP={CHV:'chv_data',MRC:'mrc_data','EX-Godown':'exgodown_data',Me2n:'me2n_data',MB51:'mb51_data',STATION:'station_data'};
 
 // STATE
-let currentUser = null;
-let masterData=[], searchResults=[], currentDisplay=[];
+let currentUser=null;
+let masterData=[],searchResults=[],currentDisplay=[];
 let selectedSuppliers=['CHV','MRC','PSP'];
 let selectedWarehouse='ALL';
 let renderLimit=50;
@@ -360,17 +502,15 @@ let searchTimer=null;
 // ============================================================
 async function handleLogin(e) {
   e.preventDefault();
-  const code = document.getElementById('loginId').value.trim();
-  const btn = document.getElementById('btnLogin');
-  const msg = document.getElementById('loginMsg');
-  btn.disabled=true; btn.innerHTML='<i class="fas fa-circle-notch fa-spin"></i> รอสักครู่...'; msg.innerText='';
-  const {data,error} = await db.from('users').select('*').eq('code',code).single();
-  if (error||!data) {
-    msg.innerText='รหัสไม่ถูกต้อง'; btn.disabled=false; btn.innerText='ตรวจสอบสิทธิ์'; return;
-  }
+  const code=document.getElementById('loginId').value.trim();
+  const btn=document.getElementById('btnLogin');
+  const msg=document.getElementById('loginMsg');
+  btn.disabled=true; btn.innerHTML='<i class="fas fa-circle-notch fa-spin me-2"></i>รอสักครู่...'; msg.innerText='';
+  const {data,error}=await db.from('users').select('*').eq('code',code).single();
+  if (error||!data){msg.innerText='รหัสไม่ถูกต้อง';btn.disabled=false;btn.innerHTML='<i class="fas fa-sign-in-alt me-2"></i>ตรวจสอบสิทธิ์';return;}
   currentUser=data;
   document.getElementById('userRoleDisplay').innerText=data.role.toUpperCase();
-  if (data.warehouse) {
+  if (data.warehouse){
     document.getElementById('userWarehouseBadge').style.display='inline-block';
     document.getElementById('userWarehouseDisplay').innerText=data.warehouse;
     selectedWarehouse=data.warehouse;
@@ -378,7 +518,8 @@ async function handleLogin(e) {
   if (data.role==='admin') document.getElementById('headerUploadBtn').style.display='inline-block';
   document.getElementById('loginOverlay').style.display='none';
   document.getElementById('mainApp').style.display='block';
-  fetchAllData();
+  await fetchAllData();
+  showOverdueAlert();
 }
 function logout(){location.reload();}
 
@@ -389,13 +530,13 @@ async function fetchAllData() {
   document.getElementById('loader').style.display='block';
   document.getElementById('resultSection').style.display='none';
   masterData=[];
-  const promises = Object.entries(SUPPLIERS).map(async ([key,cfg]) => {
-    const {data,error} = await db.from(cfg.view).select('*');
+  const promises=Object.entries(SUPPLIERS).map(async([key,cfg])=>{
+    const {data,error}=await db.from(cfg.view).select('*');
     if (error||!data?.length) return;
-    if (data[0]?.uploaded_at) {
+    if (data[0]?.uploaded_at){
       document.getElementById('lastUpdateDisplay').innerText=new Date(data[0].uploaded_at).toLocaleString('th-TH');
     }
-    data.forEach(row => masterData.push({_source:key,...row}));
+    data.forEach(row=>masterData.push({_source:key,...row}));
   });
   await Promise.all(promises);
   document.getElementById('loader').style.display='none';
@@ -404,9 +545,42 @@ async function fetchAllData() {
 }
 
 // ============================================================
+// OVERDUE ALERT POPUP
+// ============================================================
+function showOverdueAlert() {
+  const overdue = masterData.filter(r => {
+    const days = r.days_remaining;
+    return days !== null && days !== undefined && days !== '' && parseInt(days) >= 0;
+  });
+  if (!overdue.length) return;
+
+  let html = `<p class="text-muted small mb-3">พบ <b class="text-danger">${overdue.length}</b> รายการที่ค้างรับเกินกำหนด</p>`;
+  overdue.forEach(r => {
+    const cfg = SUPPLIERS[r._source];
+    html += `
+      <div class="alert-po-card">
+        <div class="d-flex justify-content-between align-items-start mb-1">
+          <span class="fw-bold text-dark">PO: ${r.po||'-'}</span>
+          <span class="vendor-tag" style="background:${cfg?.color||'#64748b'}">${cfg?.label||r._source}</span>
+        </div>
+        <div class="row g-1 mt-1" style="font-size:0.82rem;">
+          <div class="col-4"><span class="text-muted">คลัง: </span><b>${r.warehouse||'-'}</b></div>
+          <div class="col-8"><span class="text-muted">สถานี: </span><b>${r.station_name||'-'}</b></div>
+          <div class="col-12 mt-1">
+            <span class="overdue-badge">⏰ ค้างรับ ${r.days_remaining} วัน</span>
+          </div>
+        </div>
+      </div>`;
+  });
+
+  document.getElementById('alertContent').innerHTML = html;
+  new bootstrap.Modal(document.getElementById('alertModal')).show();
+}
+
+// ============================================================
 // FILTER / SEARCH
 // ============================================================
-function toggleSupplier(src,btn) {
+function toggleSupplier(src,btn){
   btn.classList.toggle('active');
   if (selectedSuppliers.includes(src)) selectedSuppliers=selectedSuppliers.filter(s=>s!==src);
   else selectedSuppliers.push(src);
@@ -414,140 +588,99 @@ function toggleSupplier(src,btn) {
 }
 function debounceSearch(){clearTimeout(searchTimer);searchTimer=setTimeout(performSearch,400);}
 function clearSearch(){document.getElementById('searchInput').value='';performSearch();}
-function performSearch() {
+function performSearch(){
   const kw=document.getElementById('searchInput').value.toLowerCase().trim();
   let filtered=masterData.filter(r=>selectedSuppliers.includes(r._source));
-  if (kw) {
+  if (kw){
     const terms=kw.split(/[\s,]+/).filter(t=>t);
-    filtered=filtered.filter(row=>{
-      const str=Object.values(row).join(' ').toLowerCase();
-      return terms.some(t=>str.includes(t));
-    });
+    filtered=filtered.filter(row=>{const str=Object.values(row).join(' ').toLowerCase();return terms.some(t=>str.includes(t));});
   }
   searchResults=filtered;
   createWarehouseButtons();
   applyWarehouseFilter();
 }
-function updateView() {
+function updateView(){
   searchResults=masterData.filter(r=>selectedSuppliers.includes(r._source));
   createWarehouseButtons();
   applyWarehouseFilter();
 }
-function createWarehouseButtons() {
+function createWarehouseButtons(){
   const counts={};
-  searchResults.forEach(r=>{
-    const w=r.warehouse||'-';
-    if (w&&w!=='-') counts[w]=(counts[w]||0)+1;
-  });
-  const keys=Object.keys(counts).sort((a,b)=>{
-    const na=parseInt(a),nb=parseInt(b);
-    if (!isNaN(na)&&!isNaN(nb)) return na-nb;
-    return a.localeCompare(b);
-  });
+  searchResults.forEach(r=>{const w=r.warehouse||'-';if(w&&w!=='-') counts[w]=(counts[w]||0)+1;});
+  const keys=Object.keys(counts).sort((a,b)=>{const na=parseInt(a),nb=parseInt(b);if(!isNaN(na)&&!isNaN(nb))return na-nb;return a.localeCompare(b);});
   let html=`<button class="warehouse-btn ${selectedWarehouse==='ALL'?'active':''}" onclick="clickWarehouse('ALL',this)">All <span class="count-badge">${searchResults.length}</span></button>`;
-  keys.forEach(k=>{
-    const a=String(k)===String(selectedWarehouse)?'active':'';
-    html+=`<button class="warehouse-btn ${a}" onclick="clickWarehouse('${k}',this)">${k} <span class="count-badge">${counts[k]}</span></button>`;
-  });
+  keys.forEach(k=>{const a=String(k)===String(selectedWarehouse)?'active':'';html+=`<button class="warehouse-btn ${a}" onclick="clickWarehouse('${k}',this)">${k} <span class="count-badge">${counts[k]}</span></button>`;});
   document.getElementById('filterButtonContainer').innerHTML=html;
 }
-function clickWarehouse(key,btn) {
+function clickWarehouse(key,btn){
   document.querySelectorAll('.warehouse-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  selectedWarehouse=key;
-  applyWarehouseFilter();
+  btn.classList.add('active'); selectedWarehouse=key; applyWarehouseFilter();
 }
-function applyWarehouseFilter() {
-  currentDisplay=selectedWarehouse==='ALL'
-    ?searchResults
-    :searchResults.filter(r=>String(r.warehouse||'')===String(selectedWarehouse));
-  renderLimit=LOAD_STEP;
-  renderCards();
+function applyWarehouseFilter(){
+  currentDisplay=selectedWarehouse==='ALL'?searchResults:searchResults.filter(r=>String(r.warehouse||'')===String(selectedWarehouse));
+  renderLimit=LOAD_STEP; renderCards();
 }
 
 // ============================================================
 // RENDER CARDS
 // ============================================================
-function renderCards() {
+function renderCards(){
   const noMsg=document.getElementById('noDataMessage');
   const cc=document.getElementById('cardContainer');
-  if (!currentDisplay.length) {
-    cc.style.display='none';
-    document.getElementById('loadMoreBtn').style.display='none';
-    noMsg.style.display='block';
+  if (!currentDisplay.length){
+    cc.style.display='none'; document.getElementById('loadMoreBtn').style.display='none'; noMsg.style.display='block';
     const kw=document.getElementById('searchInput').value;
-    noMsg.innerHTML=kw
-      ?`<div class="no-data-alert"><i class="fas fa-search fa-2x mb-3 text-muted"></i><br>ไม่พบข้อมูลที่ค้นหา</div>`
-      :`<div class="no-data-alert"><i class="fas fa-box-open fa-2x mb-3 text-muted"></i><br>ไม่มีข้อมูล</div>`;
+    noMsg.innerHTML=kw?`<div class="no-data-alert"><i class="fas fa-search fa-2x mb-3"></i><br>ไม่พบข้อมูลที่ค้นหา</div>`:`<div class="no-data-alert"><i class="fas fa-box-open fa-2x mb-3"></i><br>ไม่มีข้อมูล</div>`;
     return;
   }
   noMsg.style.display='none'; cc.style.display='flex';
   let hS='',hP='',hF='',cS=0,cP=0,cF=0,sS=0,sP=0,sF=0;
 
   currentDisplay.forEach(row=>{
-    const bucket=mapStatus(row._source,row.status);
-    if (bucket==='SUCCESS') cS++; else if (bucket==='FAILED') cF++; else cP++;
+    const bucket=mapBucket(row);
+    const isFailed = bucket==='FAILED'||bucket==='OVERDUE';
+    if (bucket==='SUCCESS') cS++; else if (isFailed) cF++; else cP++;
     let ok=false;
     if (bucket==='SUCCESS'&&sS<renderLimit){ok=true;sS++;}
     else if (bucket==='PENDING'&&sP<renderLimit){ok=true;sP++;}
-    else if (bucket==='FAILED'&&sF<renderLimit){ok=true;sF++;}
+    else if (isFailed&&sF<renderLimit){ok=true;sF++;}
     if (!ok) return;
 
     const cfg=SUPPLIERS[row._source];
-    const cls=bucket==='SUCCESS'?'card-border-success':bucket==='FAILED'?'card-border-danger':'card-border-warning';
-    const badgeCls=bucketBadgeClass(bucket);
+    const cardCls=bucketCardClass(bucket);
+    const pillCls=bucketPillClass(bucket);
     const label=bucketLabel(bucket);
+    const days=row.days_remaining;
 
-    const po           = row.po||'-';
-    const warehouse    = row.warehouse||'-';
-    const pointCode    = row.point_code||'-';
-    const stationName  = row.station_name||'-';
-    const deliveryDate = row.delivery_date||'-';
-    const startDate    = row.start_delivery_date||'-';
-    const receiveDate  = row.receive_date||'-';
-    const daysLeft     = row.days_remaining||null;
+    // แสดง receive_date: ถ้า start > receive ให้แสดง start แทน
+    let displayReceive = row.receive_date||'';
+    if (displayReceive && row.start_delivery_date && row.start_delivery_date > displayReceive) {
+      displayReceive = row.start_delivery_date;
+    }
 
     const card=`
-      <div class="po-card ${cls}" onclick="openPODetail('${po}','${row._source}')">
+      <div class="po-card ${cardCls}" onclick="openPODetail('${row.po}','${row._source}')">
         <div class="po-header">
-          <span>PO: ${po}</span>
+          <span class="po-number">PO: ${row.po||'-'}</span>
           <span class="vendor-tag" style="background:${cfg.color}">${cfg.label}</span>
         </div>
         <div class="po-body">
-          <div class="info-row">
-            <div class="info-label">ชื่อคลัง:</div>
-            <div class="info-value">${warehouse}</div>
-          </div>
-          <div class="info-row">
-            <div class="info-label">รหัสจุดส่ง:</div>
-            <div class="info-value fw-bold text-primary">${pointCode}</div>
-          </div>
-          <div class="info-row">
-            <div class="info-label">ชื่อสถานี:</div>
-            <div class="info-value" title="${stationName}">${stationName}</div>
-          </div>
-          <div class="info-row">
-            <div class="info-label">วันที่ถึง:</div>
-            <div class="info-value">${deliveryDate}</div>
-          </div>
-          <div class="info-row">
-            <div class="info-label">วันที่เริ่มส่ง:</div>
-            <div class="info-value">${startDate}</div>
-          </div>
-          <div class="info-row">
-            <div class="info-label">วันที่ทำรับ:</div>
-            <div class="info-value">${receiveDate !== '-' ? receiveDate : '<span class="text-muted fst-italic small">ยังไม่ทำรับ</span>'}</div>
-          </div>
-          ${daysLeft?`<div class="info-row"><div class="info-label">วันที่เหลือ:</div><div class="info-value"><span class="days-badge">⏳ ${daysLeft} วัน</span></div></div>`:''}
-          <div class="mt-2 pt-1 border-top d-flex justify-content-between align-items-center">
-            <small class="text-muted">สถานะ:</small>
-            <span class="status-badge ${badgeCls}">${label}</span>
-          </div>
+          <div class="info-row"><div class="info-label">ชื่อคลัง:</div><div class="info-value">${row.warehouse||'-'}</div></div>
+          <div class="info-row"><div class="info-label">รหัสจุดส่ง:</div><div class="info-value fw-bold" style="color:var(--primary)">${row.point_code||'-'}</div></div>
+          <div class="info-row"><div class="info-label">ชื่อสถานี:</div><div class="info-value">${row.station_name||'-'}</div></div>
+          <div class="info-row"><div class="info-label">วันที่ถึง:</div><div class="info-value">${row.delivery_date||'-'}</div></div>
+          <div class="info-row"><div class="info-label">วันที่เริ่มส่ง:</div><div class="info-value">${row.start_delivery_date||'-'}</div></div>
+          <div class="info-row"><div class="info-label">วันที่ทำรับ:</div><div class="info-value">${displayReceive||'<span style="color:var(--muted);font-style:italic;font-size:0.8rem;">ยังไม่ทำรับ</span>'}</div></div>
+          ${days?`<div class="info-row"><div class="info-label">วันที่ค้างรับ:</div><div class="info-value"><span class="overdue-badge">⏰ ${days} วัน</span></div></div>`:''}
+        </div>
+        <div class="po-footer">
+          <small class="text-muted">สถานะ</small>
+          <span class="status-pill ${pillCls}">${label}</span>
         </div>
       </div>`;
 
     if (bucket==='SUCCESS') hS+=card;
-    else if (bucket==='FAILED') hF+=card;
+    else if (isFailed) hF+=card;
     else hP+=card;
   });
 
@@ -569,123 +702,98 @@ function loadMore(){renderLimit+=LOAD_STEP;renderCards();}
 // ============================================================
 // PO DETAIL POPUP
 // ============================================================
-async function openPODetail(po, source) {
-  const cfg = SUPPLIERS[source];
-  document.getElementById('modalPOTitle').innerText = `PO: ${po}`;
-  document.getElementById('modalPOSupplier').innerText = cfg?.label || source;
-  document.getElementById('modalLoader').style.display = 'block';
-  document.getElementById('modalContent').style.display = 'none';
+async function openPODetail(po,source){
+  const cfg=SUPPLIERS[source];
+  document.getElementById('modalPOTitle').innerText=`PO: ${po}`;
+  document.getElementById('modalPOSupplier').innerText=cfg?.label||source;
+  document.getElementById('modalLoader').style.display='block';
+  document.getElementById('modalContent').style.display='none';
+  new bootstrap.Modal(document.getElementById('poDetailModal')).show();
 
-  const modal = new bootstrap.Modal(document.getElementById('poDetailModal'));
-  modal.show();
+  const {data,error}=await db.from('me2n_data').select('vendor,material,short_text,quantity_in_sku,stockkeeping_unit,order_quantity,order_unit,still_deliver_qty').eq('purchasing_document',po);
+  document.getElementById('modalLoader').style.display='none';
+  document.getElementById('modalContent').style.display='block';
 
-  // ดึงข้อมูลจาก me2n_data ทุก item ของ PO นี้
-  const { data, error } = await db
-    .from('me2n_data')
-    .select('vendor, material, short_text, quantity_in_sku, stockkeeping_unit, order_quantity, order_unit, still_deliver_qty')
-    .eq('purchasing_document', po);
-
-  document.getElementById('modalLoader').style.display = 'none';
-  document.getElementById('modalContent').style.display = 'block';
-
-  if (error || !data?.length) {
-    document.getElementById('modalContent').innerHTML = `
-      <div class="text-center py-4 text-muted">
-        <i class="fas fa-inbox fa-2x mb-3"></i>
-        <p>ไม่พบข้อมูลใน ME2N สำหรับ PO นี้</p>
-      </div>`;
+  if (error||!data?.length){
+    document.getElementById('modalContent').innerHTML=`<div class="text-center py-4 text-muted"><i class="fas fa-inbox fa-2x mb-3"></i><p>ไม่พบข้อมูลใน ME2N สำหรับ PO นี้</p></div>`;
     return;
   }
-
-  let html = `<p class="text-muted small mb-3">พบ <b>${data.length}</b> รายการใน PO นี้</p>`;
-  data.forEach((item, idx) => {
-    html += `
+  let html=`<p class="text-muted small mb-3">พบ <b>${data.length}</b> รายการ</p>`;
+  data.forEach((item,idx)=>{
+    const overdue=parseFloat(item.still_deliver_qty||0)>0;
+    html+=`
       <div class="popup-item-card">
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <span class="fw-bold text-primary">รายการที่ ${idx+1}</span>
+        <div class="d-flex justify-content-between mb-2">
+          <span class="fw-bold" style="color:var(--primary)">รายการที่ ${idx+1}</span>
+          ${overdue?`<span class="days-badge">ค้างส่ง ${item.still_deliver_qty}</span>`:'<span class="status-pill pill-success" style="font-size:0.73rem;">ส่งครบ</span>'}
         </div>
         <div class="row g-2">
-          <div class="col-6">
-            <div class="popup-item-label">Vendor</div>
-            <div class="popup-item-value">${item.vendor||'-'}</div>
-          </div>
-          <div class="col-6">
-            <div class="popup-item-label">Material</div>
-            <div class="popup-item-value">${item.material||'-'}</div>
-          </div>
-          <div class="col-12">
-            <div class="popup-item-label">Short Text</div>
-            <div class="popup-item-value">${item.short_text||'-'}</div>
-          </div>
-          <div class="col-4">
-            <div class="popup-item-label">Order Qty</div>
-            <div class="popup-item-value">${item.order_quantity||'-'} ${item.order_unit||''}</div>
-          </div>
-          <div class="col-4">
-            <div class="popup-item-label">Qty in SKU</div>
-            <div class="popup-item-value">${item.quantity_in_sku||'-'}</div>
-          </div>
-          <div class="col-4">
-            <div class="popup-item-label">SKU Unit</div>
-            <div class="popup-item-value">${item.stockkeeping_unit||'-'}</div>
-          </div>
-          <div class="col-6">
-            <div class="popup-item-label">ยังค้างส่ง (qty)</div>
-            <div class="popup-item-value ${parseFloat(item.still_deliver_qty||0)>0?'text-danger':'text-success'}">${item.still_deliver_qty||'0'}</div>
-          </div>
+          <div class="col-12"><div class="popup-item-label">Vendor</div><div class="popup-item-value">${item.vendor||'-'}</div></div>
+          <div class="col-6"><div class="popup-item-label">Material</div><div class="popup-item-value">${item.material||'-'}</div></div>
+          <div class="col-6"><div class="popup-item-label">Short Text</div><div class="popup-item-value">${item.short_text||'-'}</div></div>
+          <div class="col-4"><div class="popup-item-label">Order Qty</div><div class="popup-item-value">${item.order_quantity||'-'} ${item.order_unit||''}</div></div>
+          <div class="col-4"><div class="popup-item-label">Qty in SKU</div><div class="popup-item-value">${item.quantity_in_sku||'-'}</div></div>
+          <div class="col-4"><div class="popup-item-label">SKU Unit</div><div class="popup-item-value">${item.stockkeeping_unit||'-'}</div></div>
         </div>
       </div>`;
   });
-  document.getElementById('modalContent').innerHTML = html;
+  document.getElementById('modalContent').innerHTML=html;
 }
 
 // ============================================================
-// UPLOAD
+// UPLOAD (parallel batches)
 // ============================================================
-async function processUpload(tableName, sourceKey, inputEl) {
+async function processUpload(tableName,sourceKey,inputEl){
   const file=inputEl.files[0];
   if (!file) return;
   if (!confirm(`ยืนยันอัปโหลด "${file.name}" ?\nข้อมูลเก่าจะถูกแทนที่ทั้งหมด`)){inputEl.value='';return;}
   const modal=bootstrap.Modal.getInstance(document.getElementById('uploadModal'));
   if (modal) modal.hide();
-  showProgress('กำลังอ่านไฟล์...','',10);
+  showProgress('แมวกำลังเตรียมลัง...','',5);
   const reader=new FileReader();
   reader.onload=async(e)=>{
-    try {
+    try{
       const cfg=UPLOAD_CONFIG[sourceKey];
       const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:true,dateNF:'yyyy-mm-dd'});
       const ws=wb.Sheets[wb.SheetNames[0]];
       const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
       const headers=raw[cfg.headerRow];
-      showProgress('กำลังแปลงข้อมูล...','',30);
+      showProgress('แมวกำลังอ่านเอกสาร...','',20);
       const rows=[];
-      for (let i=cfg.headerRow+1;i<raw.length;i++) {
+      for (let i=cfg.headerRow+1;i<raw.length;i++){
         const rowArr=raw[i];
         if (!rowArr||rowArr.every(v=>v===''||v===null||v===undefined)) continue;
         const obj={};
         headers.forEach((h,idx)=>{
           const col=cfg.colMap[h];
-          if (col){
-            let val=rowArr[idx];
-            if (val instanceof Date) val=val.toISOString().split('T')[0];
-            obj[col]=(val!==undefined&&val!==null)?String(val):'';
-          }
+          if (col){let val=rowArr[idx];if(val instanceof Date)val=val.toISOString().split('T')[0];obj[col]=(val!==undefined&&val!==null)?String(val):'';}
         });
         if (Object.values(obj).some(v=>v!=='')) rows.push(obj);
       }
-      showProgress('กำลังลบข้อมูลเก่า...',`พบ ${rows.length.toLocaleString()} แถว`,50);
+      showProgress('แมวกำลังเก็บเอกสารเก่า...',`พบ ${rows.length.toLocaleString()} แถว`,40);
       const {error:delErr}=await db.from(tableName).delete().neq('id',0);
       if (delErr) throw new Error('ลบข้อมูลเก่าไม่สำเร็จ: '+delErr.message);
-      const BATCH=300;
-      for (let i=0;i<rows.length;i+=BATCH){
-        const {error:insErr}=await db.from(tableName).insert(rows.slice(i,i+BATCH));
-        if (insErr) throw new Error('Insert ไม่สำเร็จ: '+insErr.message);
-        const pct=55+Math.round(((i+BATCH)/rows.length)*40);
-        showProgress('กำลังบันทึก...',`${Math.min(i+BATCH,rows.length).toLocaleString()} / ${rows.length.toLocaleString()} แถว`,Math.min(pct,95));
+
+      // Parallel batches เร็วขึ้น
+      const BATCH=500;
+      const batches=[];
+      for (let i=0;i<rows.length;i+=BATCH) batches.push(rows.slice(i,i+BATCH));
+      let done=0;
+      // ส่ง 3 batch พร้อมกัน
+      const PARALLEL=3;
+      for (let i=0;i<batches.length;i+=PARALLEL){
+        const chunk=batches.slice(i,i+PARALLEL);
+        await Promise.all(chunk.map(async(batch)=>{
+          const {error:insErr}=await db.from(tableName).insert(batch);
+          if (insErr) throw new Error('Insert ไม่สำเร็จ: '+insErr.message);
+          done+=batch.length;
+          const pct=40+Math.round((done/rows.length)*55);
+          showProgress('แมวกำลังจัดใส่ตู้...',`${done.toLocaleString()} / ${rows.length.toLocaleString()} แถว`,Math.min(pct,95));
+        }));
       }
-      showProgress('✅ สำเร็จ!',`อัปโหลด ${rows.length.toLocaleString()} รายการ`,100);
-      setTimeout(()=>{document.getElementById('uploadLoader').style.display='none';fetchAllData();},1200);
-    } catch(err){
+      showProgress('แมวจัดเสร็จแล้ว! 🐱✅',`อัปโหลด ${rows.length.toLocaleString()} รายการ`,100);
+      setTimeout(()=>{document.getElementById('uploadLoader').style.display='none';fetchAllData();},1500);
+    }catch(err){
       document.getElementById('uploadLoader').style.display='none';
       alert('❌ เกิดข้อผิดพลาด: '+err.message);
     }
@@ -706,10 +814,10 @@ function showProgress(title,sub,pct){
 // ============================================================
 function exportToExcel(){
   if (!currentDisplay?.length){alert('ไม่มีข้อมูลที่จะ Export');return;}
-  const headers=['Supplier','PO','คลัง','สถานะ','วันที่ถึง','วันที่เริ่มส่ง','วันที่ทำรับ','วันที่เหลือ','รหัสจุดส่ง','ชื่อสถานี'];
+  const headers=['Supplier','PO','คลัง','สถานะ','วันที่ถึง','วันที่เริ่มส่ง','วันที่ทำรับ','วันที่ค้างรับ','รหัสจุดส่ง','ชื่อสถานี'];
   const rows=currentDisplay.map(r=>[
     SUPPLIERS[r._source]?.label||r._source,
-    r.po,r.warehouse,bucketLabel(mapStatus(r._source,r.status)),
+    r.po,r.warehouse,bucketLabel(mapBucket(r)),
     r.delivery_date,r.start_delivery_date,r.receive_date,r.days_remaining,
     r.point_code,r.station_name
   ]);
