@@ -428,6 +428,50 @@ const SUPPLIERS = {
 // ============================================================
 // STATUS LOGIC
 // ============================================================
+// แปลงวันที่ทุกฟอร์แมตให้เป็นมาตรฐานเดียว: YYYY-MM-DD
+// รองรับ: "05/06/2026" (d/m/y), "2026-06-09" (y-m-d),
+//         "9/6/2026", "09-06-2026", และ Date object จาก Excel
+// ============================================================
+function normalizeDate(v){
+  if(v===null || v===undefined || v==='' || v==='-') return '';
+  // ถ้าเป็น Date object อยู่แล้ว
+  if(v instanceof Date && !isNaN(v)){
+    return v.getFullYear()+'-'+String(v.getMonth()+1).padStart(2,'0')+'-'+String(v.getDate()).padStart(2,'0');
+  }
+  const s = String(v).trim();
+
+  // รูปแบบ YYYY-MM-DD หรือ YYYY/MM/DD (ปีขึ้นก่อน) — มาตรฐานอยู่แล้ว
+  let m = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+  if(m){
+    return m[1]+'-'+String(+m[2]).padStart(2,'0')+'-'+String(+m[3]).padStart(2,'0');
+  }
+
+  // รูปแบบ DD/MM/YYYY หรือ DD-MM-YYYY (วันขึ้นก่อน)
+  m = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
+  if(m){
+    let d=+m[1], mo=+m[2], y=+m[3];
+    // ป้องกันสลับ: ถ้าตัวแรก > 12 แสดงว่าเป็นวันแน่นอน (ถูกแล้ว)
+    // ปี พ.ศ. > 2500 → แปลงเป็น ค.ศ.
+    if(y>2500) y-=543;
+    return y+'-'+String(mo).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+  }
+
+  // แปลงไม่ได้ คืนค่าเดิม (กันข้อมูลหาย)
+  return s;
+}
+
+// แปลงวันที่ทุกคอลัมน์ในแถวให้เป็นมาตรฐาน
+function normalizeRowDates(row){
+  ['delivery_date','start_delivery_date','receive_date',
+   'doc_date','bill_date','appoint_date','shop_receive_date',
+   'confirm_date','planned_gi_date','actual_delivery_date',
+   'created_date','inv_date','depart_from_rtpl'].forEach(f=>{
+    if(row[f]!==undefined) row[f]=normalizeDate(row[f]);
+  });
+  return row;
+}
+
+// ============================================================
 function mapBucket(row) {
   const src    = row._source;
   const status = (row.status||'').toString().trim();
@@ -435,28 +479,29 @@ function mapBucket(row) {
   const start  = row.start_delivery_date||'';
   const days   = row.days_remaining;
 
-  // ถ้ามีวันทำรับ และ start <= receive → สำเร็จ
+  // --- 1. เช็คว่า "สำเร็จ" ก่อนเสมอ (มาก่อน days ตามที่ตกลง) ---
+  // ถ้ามีวันทำรับ และเริ่มส่งไม่หลังวันทำรับ → สำเร็จ
   if (recv && recv !== '-' && recv !== '') {
-    // ถ้า start_delivery_date หลัง receive_date → ถือว่ายังไม่สำเร็จ
     if (start && start !== '-' && start > recv) {
-      // ไม่นับว่าทำรับแล้ว
+      // เริ่มส่งหลังวันทำรับ = ข้อมูลผิดปกติ ไม่นับว่าสำเร็จ
     } else {
       return 'SUCCESS';
     }
   }
-
-  // มี days_remaining (ค้างเกินกำหนด) → ค้างรับ
-  if (days && parseInt(days) >= 0) return 'OVERDUE';
-
-  // CHV
-  if (src === 'CHV') {
-    if (status === 'Pass' || status === 'Completed') return 'SUCCESS';
-    if (status === 'Fail' || status === 'Rejected')  return 'FAILED';
-    return 'PENDING';
-  }
-  // MRC / PSP
+  // status บอกว่าส่งเสร็จ → สำเร็จ (เช็คก่อน days ด้วย)
+  if (src === 'CHV' && (status === 'Pass' || status === 'Completed')) return 'SUCCESS';
   if (status.includes('ส่งเสร็จ')) return 'SUCCESS';
+
+  // --- 2. เช็คว่า "ไม่สำเร็จ" ---
+  if (src === 'CHV' && (status === 'Fail' || status === 'Rejected')) return 'FAILED';
   if (status === 'ส่งไม่ได้' || status.includes('คืน')) return 'FAILED';
+
+  // --- 3. ค้างรับ: ต้องค้างตั้งแต่ 1 วันขึ้นไป (0 = ครบกำหนดวันนี้ ยังไม่ค้าง) ---
+  // ใช้ Number() แทน parseInt + เช็ค !== '' เพื่อให้ค่า 0 และ "0" ได้ผลเหมือนกัน
+  const d = (days === null || days === undefined || days === '') ? NaN : Number(days);
+  if (!isNaN(d) && d > 0) return 'OVERDUE';
+
+  // --- 4. ที่เหลือ = ระหว่างทาง ---
   return 'PENDING';
 }
 
@@ -536,7 +581,7 @@ async function fetchAllData() {
     if (data[0]?.uploaded_at){
       document.getElementById('lastUpdateDisplay').innerText=new Date(data[0].uploaded_at).toLocaleString('th-TH');
     }
-    data.forEach(row=>masterData.push({_source:key,...row}));
+    data.forEach(row=>masterData.push(normalizeRowDates({_source:key,...row})));
   });
   await Promise.all(promises);
   document.getElementById('loader').style.display='none';
@@ -548,10 +593,9 @@ async function fetchAllData() {
 // OVERDUE ALERT POPUP
 // ============================================================
 function showOverdueAlert() {
-  const overdue = masterData.filter(r => {
-    const days = r.days_remaining;
-    return days !== null && days !== undefined && days !== '' && parseInt(days) >= 0;
-  });
+  // ใช้ mapBucket ตัวเดียวกับการ์ด เพื่อให้กฎสอดคล้องกัน
+  // (ค้างเฉพาะ > 0 วัน และของที่สำเร็จแล้วจะไม่ขึ้น)
+  const overdue = masterData.filter(r => mapBucket(r) === 'OVERDUE');
   if (!overdue.length) return;
 
   let html = `<p class="text-muted small mb-3">พบ <b class="text-danger">${overdue.length}</b> รายการที่ค้างรับเกินกำหนด</p>`;
@@ -653,6 +697,8 @@ function renderCards(){
     const days=row.days_remaining;
 
     // แสดง receive_date: ถ้า start > receive ให้แสดง start แทน
+    // (เทียบ string ได้ถูกต้อง เพราะวันที่ถูก normalize เป็น YYYY-MM-DD แล้ว
+    //  ฟอร์แมต ISO นี้ เรียงตามตัวอักษร = เรียงตามเวลา)
     let displayReceive = row.receive_date||'';
     if (displayReceive && row.start_delivery_date && row.start_delivery_date > displayReceive) {
       displayReceive = row.start_delivery_date;
@@ -668,8 +714,8 @@ function renderCards(){
           <div class="info-row"><div class="info-label">ชื่อคลัง:</div><div class="info-value">${row.warehouse||'-'}</div></div>
           <div class="info-row"><div class="info-label">รหัสจุดส่ง:</div><div class="info-value fw-bold" style="color:var(--primary)">${row.point_code||'-'}</div></div>
           <div class="info-row"><div class="info-label">ชื่อสถานี:</div><div class="info-value">${row.station_name||'-'}</div></div>
-          <div class="info-row"><div class="info-label">วันที่ถึง:</div><div class="info-value">${row.delivery_date||'-'}</div></div>
           <div class="info-row"><div class="info-label">วันที่เริ่มส่ง:</div><div class="info-value">${row.start_delivery_date||'-'}</div></div>
+          <div class="info-row"><div class="info-label">วันที่ถึง:</div><div class="info-value">${row.delivery_date||'-'}</div></div>
           <div class="info-row"><div class="info-label">วันที่ทำรับ:</div><div class="info-value">${displayReceive||'<span style="color:var(--muted);font-style:italic;font-size:0.8rem;">ยังไม่ทำรับ</span>'}</div></div>
           ${days?`<div class="info-row"><div class="info-label">วันที่ค้างรับ:</div><div class="info-value"><span class="overdue-badge">⏰ ${days} วัน</span></div></div>`:''}
         </div>
