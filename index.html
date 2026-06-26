@@ -6,142 +6,157 @@
 <title>ระบบติดตามสถานะ PO</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
+/* ============================================================
+   SOFT PAPER — มินิมอลพาสเทล
+   ============================================================ */
 :root{
-  --bg:#f0fdf4;--primary:#57b894;--phover:#429778;--dark:#334155;--muted:#64748b;
-  --shadow:0 4px 6px -1px rgba(0,0,0,0.05),0 2px 4px -1px rgba(0,0,0,0.03);
-  --shadow-md:0 8px 20px rgba(0,0,0,0.08);
-  --sbg:#d1fae5;--stxt:#065f46;--wbg:#fef3c7;--wtxt:#92400e;--dbg:#fee2e2;--dtxt:#b91c1c;
-  --cbg:#ede9fe;--ctxt:#5b21b6;
+  --bg:#faf7f2;--card:#ffffff;
+  --primary:#7fc9a3;--primary-soft:#e3f5ea;--primary-dark:#4f9b76;
+  --dark:#4a4640;--muted:#9c9488;--line:#f0ebe2;
+  --shadow:0 2px 10px rgba(74,70,64,0.05);
+  --shadow-md:0 10px 30px rgba(74,70,64,0.09);
+  --sbg:#e3f5ea;--stxt:#3f8a64;
+  --wbg:#fff3e2;--wtxt:#c1813a;
+  --dbg:#fde4e1;--dtxt:#c45d52;
+  --cbg:#ece3f7;--ctxt:#8a6bb8;
+  --r-sm:10px;--r-md:16px;--r-lg:24px;
 }
 *{box-sizing:border-box;}
-body{padding:20px;background:var(--bg);font-family:'Sarabun',sans-serif;color:var(--dark);min-height:100vh;}
+body{padding:24px;background:var(--bg);font-family:'Sarabun',sans-serif;color:var(--dark);min-height:100vh;}
+h1,h2,h3,h4,h5,.display-font{font-family:'Quicksand',sans-serif;}
 
 /* ===== LOGIN ===== */
-#loginOverlay{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#a7f3d0 0%,#57b894 60%,#2d9b6e 100%);z-index:9999;display:flex;justify-content:center;align-items:center;}
-.login-card{background:white;padding:44px 40px;border-radius:24px;box-shadow:0 25px 60px rgba(0,0,0,0.15);width:90%;max-width:420px;text-align:center;}
-.login-logo{width:72px;height:72px;background:linear-gradient(135deg,#a7f3d0,#57b894);border-radius:20px;display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px;box-shadow:0 8px 20px rgba(87,184,148,0.3);}
-.login-input{font-size:1.6rem;letter-spacing:6px;text-align:center;border-radius:14px;padding:14px;margin-bottom:20px;border:2px solid #e2e8f0;background:#f8fafc;width:100%;transition:border-color 0.2s;}
-.login-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(87,184,148,0.15);}
+#loginOverlay{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(160deg,#fdf6ee 0%,#eef6ee 45%,#e3f0ea 100%);z-index:9999;display:flex;justify-content:center;align-items:center;}
+.login-card{background:var(--card);padding:46px 40px;border-radius:var(--r-lg);box-shadow:var(--shadow-md);width:90%;max-width:400px;text-align:center;border:1px solid var(--line);}
+.login-logo{width:76px;height:76px;background:var(--primary-soft);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-bottom:18px;}
+.login-input{font-family:'Quicksand',sans-serif;font-size:1.5rem;letter-spacing:6px;text-align:center;border-radius:var(--r-sm);padding:14px;margin-bottom:18px;border:1.5px solid var(--line);background:#fcfaf7;width:100%;transition:all 0.2s;font-weight:600;}
+.login-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-soft);}
 
-/* ===== UPLOAD ANIMATION ===== */
-#uploadLoader{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(240,253,244,0.96);z-index:10000;display:none;flex-direction:column;justify-content:center;align-items:center;backdrop-filter:blur(8px);}
-.cat-scene{position:relative;width:280px;height:180px;margin-bottom:10px;}
-/* พื้นหลัง — ตู้เก็บเอกสาร */
-.cabinet{position:absolute;right:20px;bottom:0;width:80px;height:120px;background:#94a3b8;border-radius:8px 8px 4px 4px;border:3px solid #64748b;}
-.cabinet-drawer{position:absolute;width:60px;height:22px;background:#cbd5e1;border:2px solid #94a3b8;border-radius:4px;left:7px;}
-.cabinet-drawer:nth-child(1){top:8px;}
-.cabinet-drawer:nth-child(2){top:36px;}
-.cabinet-drawer:nth-child(3){top:64px;}
-.cabinet-drawer:nth-child(4){top:92px;}
-.cabinet-handle{width:24px;height:5px;background:#64748b;border-radius:3px;position:absolute;left:50%;transform:translateX(-50%);top:50%;margin-top:-2px;}
-/* แมว */
-.cat-body{position:absolute;bottom:0;left:0;animation:catWalk 1.8s ease-in-out infinite;}
-.cat-svg{width:90px;height:90px;}
-/* ลัง */
-.box-item{position:absolute;bottom:22px;animation:boxFloat 1.8s ease-in-out infinite;}
-/* progress */
-.upload-progress-wrap{width:320px;margin-top:10px;}
-.upload-progress-bar-outer{background:#e2e8f0;border-radius:99px;height:10px;overflow:hidden;}
-.upload-progress-bar-inner{height:100%;background:linear-gradient(90deg,var(--primary),#34d399);border-radius:99px;transition:width 0.3s ease;}
+/* ===== UPLOAD ANIMATION — แมวน่ารัก ===== */
+#uploadLoader{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(250,247,242,0.97);z-index:10000;display:none;flex-direction:column;justify-content:center;align-items:center;}
+.cat-scene{position:relative;width:300px;height:170px;margin-bottom:6px;}
+.scene-ground{position:absolute;bottom:6px;left:0;width:100%;height:2px;background:repeating-linear-gradient(90deg,var(--line) 0 8px,transparent 8px 16px);}
+.cabinet{position:absolute;right:14px;bottom:6px;width:74px;height:104px;background:#fff;border-radius:14px;border:2px solid var(--line);box-shadow:var(--shadow);}
+.cabinet-drawer{position:absolute;width:54px;height:20px;background:var(--primary-soft);border:1.5px solid var(--line);border-radius:8px;left:8px;}
+.cabinet-drawer:nth-child(2){top:8px;}
+.cabinet-drawer:nth-child(3){top:32px;}
+.cabinet-drawer:nth-child(4){top:56px;}
+.cabinet-drawer:nth-child(5){top:80px;}
+.cabinet-knob{width:14px;height:14px;border-radius:50%;background:#fff;border:1.5px solid var(--primary);position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);}
+.cat-body{position:absolute;bottom:6px;left:0;animation:catWalk 2.2s ease-in-out infinite;}
+.cat-svg{width:92px;height:92px;filter:drop-shadow(0 4px 6px rgba(74,70,64,0.08));display:block;}
+.box-item{position:absolute;top:-6px;left:18px;z-index:2;animation:boxBounce 2.2s ease-in-out infinite;}
+.upload-progress-wrap{width:280px;margin-top:8px;}
+.upload-progress-bar-outer{background:var(--line);border-radius:99px;height:8px;overflow:hidden;}
+.upload-progress-bar-inner{height:100%;background:linear-gradient(90deg,var(--primary),#9ed9bb);border-radius:99px;transition:width 0.3s ease;}
 
 @keyframes catWalk{
-  0%{left:10px;transform:scaleX(1);}
-  40%{left:120px;transform:scaleX(1);}
-  45%{left:120px;transform:scaleX(1);}
-  50%{left:120px;transform:scaleX(1);}
-  90%{left:10px;transform:scaleX(-1);}
-  100%{left:10px;transform:scaleX(1);}
+  0%{left:8px;transform:scaleX(1) translateY(0);}
+  10%{transform:scaleX(1) translateY(-3px);}
+  20%{transform:scaleX(1) translateY(0);}
+  42%{left:130px;transform:scaleX(1) translateY(0);}
+  48%{left:130px;transform:scaleX(1) translateY(-2px);}
+  52%{left:130px;transform:scaleX(1) translateY(0);}
+  58%{left:130px;transform:scaleX(-1) translateY(0);}
+  88%{left:8px;transform:scaleX(-1) translateY(-3px);}
+  100%{left:8px;transform:scaleX(1) translateY(0);}
 }
-@keyframes boxFloat{
-  0%{left:30px;bottom:22px;opacity:1;}
-  40%{left:130px;bottom:40px;opacity:1;}
-  50%{left:140px;bottom:60px;opacity:0;}
-  51%{left:30px;bottom:22px;opacity:0;}
-  55%{left:30px;bottom:22px;opacity:1;}
-  100%{left:30px;bottom:22px;opacity:1;}
+@keyframes boxBounce{
+  0%,20%{transform:translateY(0) rotate(0deg);}
+  10%{transform:translateY(-2px) rotate(-2deg);}
+  88%{transform:translateY(-2px) rotate(2deg);}
+  100%{transform:translateY(0) rotate(0deg);}
 }
-@keyframes drawerOpen{
-  0%,60%{transform:translateX(0);}
-  45%,55%{transform:translateX(12px);}
-}
-.cabinet-drawer:nth-child(2){animation:drawerOpen 1.8s ease-in-out infinite;}
+@keyframes drawerOpen{0%,58%{transform:translateX(0);}48%,53%{transform:translateX(10px);}}
+.cabinet-drawer:nth-child(3){animation:drawerOpen 2.2s ease-in-out infinite;}
 
 /* ===== HEADER ===== */
-.main-header{background:white;padding:16px 22px;border-radius:18px;box-shadow:var(--shadow);margin-bottom:20px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:15px;}
+.main-header{background:var(--card);padding:16px 22px;border-radius:var(--r-lg);box-shadow:var(--shadow);margin-bottom:18px;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:15px;border:1px solid var(--line);}
 .header-brand{display:flex;align-items:center;gap:14px;}
-.header-icon{width:48px;height:48px;background:linear-gradient(135deg,#a7f3d0,#57b894);border-radius:14px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.2rem;box-shadow:0 4px 12px rgba(87,184,148,0.3);}
-.header-title{font-weight:700;color:var(--primary);margin:0;font-size:1.35rem;line-height:1.2;}
-.header-sub{font-size:0.78rem;color:var(--muted);margin:0;}
+.header-icon{width:46px;height:46px;background:var(--primary-soft);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--primary-dark);font-size:1.1rem;}
+.header-title{font-family:'Quicksand',sans-serif;font-weight:700;color:var(--dark);margin:0;font-size:1.25rem;line-height:1.2;}
+.header-sub{font-size:0.76rem;color:var(--muted);margin:0;}
 
 /* ===== BUTTONS ===== */
-.btn{border-radius:10px;font-weight:600;transition:all 0.2s;font-family:'Sarabun',sans-serif;}
-.btn-primary{background:var(--primary);border-color:var(--primary);}
-.btn-primary:hover{background:var(--phover);border-color:var(--phover);transform:translateY(-1px);}
+.btn{border-radius:var(--r-sm);font-weight:600;transition:all 0.2s;font-family:'Sarabun',sans-serif;}
+.btn-primary{background:var(--primary);border-color:var(--primary);color:#fff;}
+.btn-primary:hover{background:var(--primary-dark);border-color:var(--primary-dark);transform:translateY(-1px);}
 .file-input{display:none;}
 
 /* ===== SUPPLIER ===== */
-.supplier-btn{border:2px solid #e2e8f0;background:white;color:var(--muted);border-radius:12px;padding:8px 22px;font-weight:700;font-size:0.9rem;cursor:pointer;transition:all 0.2s;font-family:'Sarabun',sans-serif;}
-.supplier-btn:hover{border-color:var(--primary);color:var(--primary);transform:translateY(-1px);}
-.supplier-btn.active{border-color:var(--primary);background:#ecfdf5;color:var(--primary);box-shadow:0 2px 10px rgba(87,184,148,0.2);}
+.supplier-btn{border:1.5px solid var(--line);background:var(--card);color:var(--muted);border-radius:var(--r-sm);padding:8px 20px;font-weight:600;font-size:0.88rem;cursor:pointer;transition:all 0.2s;font-family:'Sarabun',sans-serif;}
+.supplier-btn:hover{border-color:var(--primary);color:var(--primary-dark);}
+.supplier-btn.active{border-color:var(--primary);background:var(--primary-soft);color:var(--primary-dark);}
 
 /* ===== WAREHOUSE ===== */
-.warehouse-btn{background:white;border:1px solid #e2e8f0;color:var(--muted);border-radius:8px;padding:5px 11px;font-size:0.78rem;font-weight:600;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;margin:2px;font-family:'Sarabun',sans-serif;}
-.warehouse-btn:hover{background:#f8fafc;transform:translateY(-1px);}
+.warehouse-btn{background:var(--card);border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:5px 13px;font-size:0.77rem;font-weight:600;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;margin:2px;font-family:'Sarabun',sans-serif;}
+.warehouse-btn:hover{background:var(--primary-soft);border-color:var(--primary);}
 .warehouse-btn.active{background:var(--primary);color:white;border-color:var(--primary);}
-.count-badge{background:rgba(0,0,0,0.08);border-radius:4px;padding:0 5px;margin-left:4px;font-size:0.8em;}
-.active .count-badge{background:rgba(255,255,255,0.25);}
+.count-badge{background:rgba(0,0,0,0.06);border-radius:999px;padding:0 6px;margin-left:5px;font-size:0.8em;}
+.active .count-badge{background:rgba(255,255,255,0.3);}
 
 /* ===== STATUS COLUMNS ===== */
-.status-header{font-weight:700;text-align:center;padding:12px 16px;border-radius:14px;margin-bottom:16px;font-size:0.95rem;display:flex;align-items:center;justify-content:center;gap:8px;}
+.status-header{font-family:'Quicksand',sans-serif;font-weight:700;text-align:center;padding:12px 16px;border-radius:var(--r-md);margin-bottom:16px;font-size:0.92rem;display:flex;align-items:center;justify-content:center;gap:8px;}
 .bg-head-success{background:var(--sbg);color:var(--stxt);}
 .bg-head-warning{background:var(--wbg);color:var(--wtxt);}
 .bg-head-danger{background:var(--dbg);color:var(--dtxt);}
 
 /* ===== CARDS ===== */
-.po-card{background:white;border-radius:14px;box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden;border-left:5px solid #e2e8f0;transition:all 0.2s;cursor:pointer;}
+.po-card{background:var(--card);border-radius:var(--r-md);box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden;border:1px solid var(--line);border-left:4px solid var(--line);transition:all 0.2s;cursor:pointer;}
 .po-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);}
-.card-success{border-left-color:#34d399!important;}
-.card-warning{border-left-color:#fbbf24!important;}
-.card-danger{border-left-color:#f87171!important;}
-.po-header{padding:10px 14px;background:#f8fafc;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;}
-.po-number{font-weight:700;font-size:0.95rem;color:var(--dark);}
-.vendor-tag{font-size:0.7rem;padding:3px 10px;border-radius:20px;color:white;font-weight:700;}
-.po-body{padding:12px 14px;font-size:0.86rem;}
+.card-success{border-left-color:#9ed9bb!important;}
+.card-warning{border-left-color:#ffc98e!important;}
+.card-danger{border-left-color:#f3a8a0!important;}
+.po-header{padding:10px 14px;background:#fcfaf7;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;}
+.po-number{font-family:'Quicksand',sans-serif;font-weight:700;font-size:0.94rem;color:var(--dark);}
+.vendor-tag{font-size:0.68rem;padding:3px 11px;border-radius:99px;color:white;font-weight:700;letter-spacing:0.2px;}
+.po-body{padding:12px 14px;font-size:0.85rem;}
 .info-row{display:flex;margin-bottom:5px;align-items:flex-start;}
-.info-label{width:110px;color:var(--muted);font-size:0.78rem;flex-shrink:0;padding-top:1px;}
-.info-value{flex:1;font-weight:500;word-break:break-word;}
-.po-footer{padding:8px 14px;background:#fafafa;border-top:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;}
-.status-pill{padding:4px 14px;border-radius:20px;font-size:0.76rem;font-weight:700;}
+.info-label{width:108px;color:var(--muted);font-size:0.77rem;flex-shrink:0;padding-top:1px;}
+.info-value{flex:1;font-weight:500;word-break:break-word;color:var(--dark);}
+.po-footer{padding:8px 14px;background:#fcfaf7;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;}
+.status-pill{padding:4px 13px;border-radius:99px;font-size:0.74rem;font-weight:700;}
 .pill-success{background:var(--sbg);color:var(--stxt);}
 .pill-warning{background:var(--wbg);color:var(--wtxt);}
 .pill-danger{background:var(--dbg);color:var(--dtxt);}
-.overdue-badge{background:#fee2e2;color:#b91c1c;border-radius:8px;padding:3px 10px;font-size:0.76rem;font-weight:700;}
-.days-badge{background:var(--cbg);color:var(--ctxt);border-radius:8px;padding:3px 10px;font-size:0.76rem;font-weight:700;}
+.overdue-badge{background:var(--dbg);color:var(--dtxt);border-radius:8px;padding:3px 10px;font-size:0.74rem;font-weight:700;}
+.days-badge{background:var(--cbg);color:var(--ctxt);border-radius:8px;padding:3px 10px;font-size:0.74rem;font-weight:700;}
 
 /* ===== SEARCH ===== */
-.search-wrap{border-radius:50px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.06);}
-.search-wrap .form-control{border:none;padding:10px 4px;font-family:'Sarabun',sans-serif;font-size:0.9rem;}
+.search-wrap{border-radius:999px;overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--line);}
+.search-wrap .form-control{border:none;padding:10px 4px;font-family:'Sarabun',sans-serif;font-size:0.88rem;background:var(--card);}
 .search-wrap .form-control:focus{box-shadow:none;}
-.search-wrap .input-group-text{background:white;border:none;}
+.search-wrap .input-group-text{background:var(--card);border:none;}
 
 /* ===== MODALS ===== */
-.modal-content{border-radius:20px!important;border:none!important;}
-.popup-item-card{background:#f8fafc;border-radius:12px;padding:14px 16px;margin-bottom:10px;border-left:3px solid var(--primary);}
-.popup-item-label{font-size:0.73rem;color:var(--muted);margin-bottom:2px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;}
-.popup-item-value{font-weight:600;font-size:0.88rem;color:var(--dark);}
+.modal-content{border-radius:var(--r-lg)!important;border:1px solid var(--line)!important;box-shadow:var(--shadow-md);}
+.popup-item-card{background:#fcfaf7;border-radius:var(--r-sm);padding:14px 16px;margin-bottom:10px;border-left:3px solid var(--primary);}
+.popup-item-label{font-size:0.72rem;color:var(--muted);margin-bottom:2px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;}
+.popup-item-value{font-weight:600;font-size:0.87rem;color:var(--dark);}
 
 /* ===== ALERT POPUP ===== */
-.alert-po-card{background:white;border-radius:12px;border-left:4px solid #f87171;padding:12px 16px;margin-bottom:10px;box-shadow:var(--shadow);}
-.alert-overdue{color:#b91c1c;font-weight:700;font-size:0.8rem;}
+.alert-po-card{background:var(--card);border-radius:var(--r-sm);border-left:4px solid #f3a8a0;padding:12px 16px;margin-bottom:10px;box-shadow:var(--shadow);}
+.alert-overdue{color:var(--dtxt);font-weight:700;font-size:0.8rem;}
 
-.no-data-alert{text-align:center;padding:50px 20px;color:var(--muted);background:white;border-radius:16px;box-shadow:var(--shadow);border:2px dashed #e2e8f0;}
-.load-more-btn{background:white;border:1px solid #e2e8f0;color:var(--primary);padding:10px 30px;border-radius:50px;font-weight:600;font-size:0.9rem;transition:all 0.2s;font-family:'Sarabun',sans-serif;}
-.load-more-btn:hover{background:#f8fafc;transform:scale(1.02);}
+.no-data-alert{text-align:center;padding:50px 20px;color:var(--muted);background:var(--card);border-radius:var(--r-lg);box-shadow:var(--shadow);border:1.5px dashed var(--line);}
+.load-more-btn{background:var(--card);border:1.5px solid var(--line);color:var(--primary-dark);padding:10px 30px;border-radius:999px;font-weight:600;font-size:0.88rem;transition:all 0.2s;font-family:'Sarabun',sans-serif;}
+.load-more-btn:hover{background:var(--primary-soft);border-color:var(--primary);transform:scale(1.02);}
+
+/* ===== SOFT OUTLINE BUTTONS (upload modal) ===== */
+.btn-outline-primary,.btn-outline-success,.btn-outline-warning,.btn-outline-secondary,.btn-outline-dark,.btn-outline-info{
+  border-width:1.5px;border-color:var(--line)!important;color:var(--dark)!important;background:#fcfaf7!important;
+}
+.btn-outline-primary:hover{border-color:#8fb9e8!important;background:#eef5fc!important;color:#5f8cc4!important;}
+.btn-outline-success:hover{border-color:var(--primary)!important;background:var(--primary-soft)!important;color:var(--primary-dark)!important;}
+.btn-outline-warning:hover{border-color:#f0ab7a!important;background:#fff1e6!important;color:#c1813a!important;}
+.btn-outline-secondary:hover{border-color:#c9bdf0!important;background:#f3effa!important;color:#8a6bb8!important;}
+.btn-outline-dark:hover{border-color:#bcb6ac!important;background:#f3f1ee!important;color:#4a4640!important;}
+.btn-outline-info:hover{border-color:#8fd3e8!important;background:#eaf7fa!important;color:#3c93ab!important;}
 
 @media(max-width:768px){body{padding:10px;}.main-header{flex-direction:column;align-items:stretch;}.col-md-4{margin-bottom:20px;}}
 </style>
@@ -151,60 +166,76 @@ body{padding:20px;background:var(--bg);font-family:'Sarabun',sans-serif;color:va
 <!-- ===== UPLOAD LOADER ===== -->
 <div id="uploadLoader">
   <div class="cat-scene">
+    <div class="scene-ground"></div>
     <!-- ตู้เก็บเอกสาร -->
     <div class="cabinet">
-      <div class="cabinet-drawer"><div class="cabinet-handle"></div></div>
-      <div class="cabinet-drawer"><div class="cabinet-handle"></div></div>
-      <div class="cabinet-drawer"><div class="cabinet-handle"></div></div>
-      <div class="cabinet-drawer"><div class="cabinet-handle"></div></div>
+      <div class="cabinet-drawer"><div class="cabinet-knob"></div></div>
+      <div class="cabinet-drawer"><div class="cabinet-knob"></div></div>
+      <div class="cabinet-drawer"><div class="cabinet-knob"></div></div>
+      <div class="cabinet-drawer"><div class="cabinet-knob"></div></div>
     </div>
-    <!-- ลังเอกสาร -->
-    <div class="box-item">
-      <svg width="38" height="32" viewBox="0 0 38 32">
-        <rect x="1" y="10" width="36" height="21" rx="3" fill="#fbbf24" stroke="#d97706" stroke-width="1.5"/>
-        <rect x="1" y="10" width="36" height="8" rx="3" fill="#fde68a" stroke="#d97706" stroke-width="1.5"/>
-        <line x1="19" y1="10" x2="19" y2="31" stroke="#d97706" stroke-width="1.2"/>
-        <rect x="12" y="6" width="14" height="6" rx="2" fill="#fde68a" stroke="#d97706" stroke-width="1.2"/>
-        <text x="19" y="23" text-anchor="middle" font-size="8" fill="#92400e" font-weight="bold">PO</text>
-      </svg>
-    </div>
-    <!-- แมว -->
+    <!-- แมว น่ารักพาสเทล (อุ้มลังไปด้วย) -->
     <div class="cat-body">
-      <svg class="cat-svg" viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg">
+      <!-- ลังเอกสารบนหลังแมว -->
+      <div class="box-item">
+        <svg width="36" height="30" viewBox="0 0 40 34">
+          <rect x="1" y="11" width="38" height="22" rx="4" fill="#ffd9c0" stroke="#f0b48a" stroke-width="1.5"/>
+          <rect x="1" y="11" width="38" height="9" rx="4" fill="#ffe8d6" stroke="#f0b48a" stroke-width="1.5"/>
+          <line x1="20" y1="11" x2="20" y2="33" stroke="#f0b48a" stroke-width="1.2"/>
+          <rect x="13" y="6" width="14" height="7" rx="3" fill="#ffe8d6" stroke="#f0b48a" stroke-width="1.2"/>
+          <text x="20" y="25" text-anchor="middle" font-size="8" fill="#c1813a" font-weight="bold" font-family="Quicksand,sans-serif">PO</text>
+          <circle cx="6" cy="16" r="1.3" fill="#f0b48a"/>
+          <circle cx="34" cy="16" r="1.3" fill="#f0b48a"/>
+        </svg>
+      </div>
+      <svg class="cat-svg" viewBox="0 0 90 92" xmlns="http://www.w3.org/2000/svg">
+        <!-- หาง โบกไปมา -->
+        <path class="cat-tail" d="M66 70 Q84 58 79 40" stroke="#f4c9a8" stroke-width="7" fill="none" stroke-linecap="round"/>
+        <path class="cat-tail" d="M66 70 Q84 58 79 40" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.5"/>
         <!-- ลำตัว -->
-        <ellipse cx="45" cy="62" rx="22" ry="18" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
-        <!-- หัว -->
-        <circle cx="45" cy="38" r="18" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
-        <!-- หู -->
-        <polygon points="30,25 24,10 38,22" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
-        <polygon points="60,25 66,10 52,22" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
-        <polygon points="31,23 27,14 37,21" fill="#fda4af"/>
-        <polygon points="59,23 63,14 53,21" fill="#fda4af"/>
-        <!-- หน้า -->
-        <circle cx="39" cy="36" r="3.5" fill="#1e293b"/>
-        <circle cx="51" cy="36" r="3.5" fill="#1e293b"/>
-        <circle cx="40" cy="35" r="1.2" fill="white"/>
-        <circle cx="52" cy="35" r="1.2" fill="white"/>
-        <ellipse cx="45" cy="41" rx="3" ry="2" fill="#fda4af"/>
-        <!-- หนวด -->
-        <line x1="48" y1="41" x2="62" y2="38" stroke="#94a3b8" stroke-width="1.2"/>
-        <line x1="48" y1="42" x2="63" y2="43" stroke="#94a3b8" stroke-width="1.2"/>
-        <line x1="42" y1="41" x2="28" y2="38" stroke="#94a3b8" stroke-width="1.2"/>
-        <line x1="42" y1="42" x2="27" y2="43" stroke="#94a3b8" stroke-width="1.2"/>
-        <!-- แขน/อุ้งมือ -->
-        <ellipse cx="28" cy="68" rx="7" ry="5" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
-        <ellipse cx="62" cy="68" rx="7" ry="5" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+        <ellipse cx="45" cy="64" rx="23" ry="19" fill="#fdf1e6" stroke="#f0c9a8" stroke-width="1.6"/>
+        <!-- ลายจุดบนตัว -->
+        <ellipse cx="33" cy="58" rx="3.5" ry="5" fill="#f8e0c8" opacity="0.7"/>
+        <ellipse cx="58" cy="60" rx="3" ry="4.5" fill="#f8e0c8" opacity="0.7"/>
         <!-- ขา -->
-        <ellipse cx="36" cy="78" rx="7" ry="5" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
-        <ellipse cx="54" cy="78" rx="7" ry="5" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
-        <!-- หาง -->
-        <path d="M67 72 Q82 60 78 45" stroke="#94a3b8" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <ellipse cx="34" cy="80" rx="7.5" ry="5.5" fill="#fdf1e6" stroke="#f0c9a8" stroke-width="1.6"/>
+        <ellipse cx="56" cy="80" rx="7.5" ry="5.5" fill="#fdf1e6" stroke="#f0c9a8" stroke-width="1.6"/>
+        <!-- แขน/อุ้งมือ -->
+        <ellipse cx="25" cy="69" rx="7.5" ry="5.5" fill="#fdf1e6" stroke="#f0c9a8" stroke-width="1.6"/>
+        <ellipse cx="65" cy="69" rx="7.5" ry="5.5" fill="#fdf1e6" stroke="#f0c9a8" stroke-width="1.6"/>
+        <!-- หู -->
+        <polygon points="29,24 22,7 39,21" fill="#fdf1e6" stroke="#f0c9a8" stroke-width="1.6"/>
+        <polygon points="61,24 68,7 51,21" fill="#fdf1e6" stroke="#f0c9a8" stroke-width="1.6"/>
+        <polygon points="30,21 26,12 37,20" fill="#ffc9d9"/>
+        <polygon points="60,21 64,12 53,20" fill="#ffc9d9"/>
+        <!-- หัว -->
+        <circle cx="45" cy="38" r="19" fill="#fdf1e6" stroke="#f0c9a8" stroke-width="1.6"/>
+        <!-- แก้มชมพู -->
+        <ellipse cx="30" cy="42" rx="5.5" ry="4" fill="#ffc9d9" opacity="0.8"/>
+        <ellipse cx="60" cy="42" rx="5.5" ry="4" fill="#ffc9d9" opacity="0.8"/>
+        <!-- ตาโตเป็นประกาย -->
+        <ellipse cx="37" cy="37" rx="4.2" ry="5" fill="#5c4a3d"/>
+        <ellipse cx="53" cy="37" rx="4.2" ry="5" fill="#5c4a3d"/>
+        <circle cx="38.5" cy="35" r="1.5" fill="white"/>
+        <circle cx="54.5" cy="35" r="1.5" fill="white"/>
+        <circle cx="36" cy="39" r="0.8" fill="white" opacity="0.8"/>
+        <circle cx="52" cy="39" r="0.8" fill="white" opacity="0.8"/>
+        <!-- จมูก -->
+        <path d="M43 43 Q45 45 47 43" stroke="#e8a0a0" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+        <ellipse cx="45" cy="42" rx="2.2" ry="1.6" fill="#f4a9b8"/>
+        <!-- ปากยิ้ม -->
+        <path d="M41 45 Q45 49 49 45" stroke="#caa385" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+        <!-- หนวด -->
+        <line x1="47" y1="43" x2="63" y2="40" stroke="#e8d4c0" stroke-width="1.1" stroke-linecap="round"/>
+        <line x1="47" y1="45" x2="64" y2="46" stroke="#e8d4c0" stroke-width="1.1" stroke-linecap="round"/>
+        <line x1="43" y1="43" x2="27" y2="40" stroke="#e8d4c0" stroke-width="1.1" stroke-linecap="round"/>
+        <line x1="43" y1="45" x2="26" y2="46" stroke="#e8d4c0" stroke-width="1.1" stroke-linecap="round"/>
       </svg>
     </div>
   </div>
   <div style="text-align:center;margin-bottom:6px;">
-    <span style="font-size:1.1rem;font-weight:700;color:var(--dark);" id="uploadStatusText">กำลังอัปโหลด...</span><br>
-    <small style="color:var(--muted);" id="uploadSubText">แมวกำลังจัดเอกสาร กรุณารอสักครู่</small>
+    <span style="font-size:1.05rem;font-weight:700;color:var(--dark);font-family:'Quicksand',sans-serif;" id="uploadStatusText">กำลังอัปโหลด...</span><br>
+    <small style="color:var(--muted);" id="uploadSubText">น้องแมวกำลังช่วยจัดเอกสารอยู่ 🐾</small>
   </div>
   <div class="upload-progress-wrap">
     <div class="upload-progress-bar-outer">
@@ -217,7 +248,22 @@ body{padding:20px;background:var(--bg);font-family:'Sarabun',sans-serif;color:va
 <!-- ===== LOGIN ===== -->
 <div id="loginOverlay">
   <div class="login-card">
-    <div class="login-logo"><i class="fas fa-boxes fa-2x" style="color:white;"></i></div>
+    <div class="login-logo">
+      <svg width="42" height="42" viewBox="0 0 90 92">
+        <ellipse cx="45" cy="64" rx="23" ry="19" fill="#fdf1e6" stroke="#f0c9a8" stroke-width="2"/>
+        <polygon points="29,24 22,7 39,21" fill="#fdf1e6" stroke="#f0c9a8" stroke-width="2"/>
+        <polygon points="61,24 68,7 51,21" fill="#fdf1e6" stroke="#f0c9a8" stroke-width="2"/>
+        <polygon points="30,21 26,12 37,20" fill="#ffc9d9"/>
+        <polygon points="60,21 64,12 53,20" fill="#ffc9d9"/>
+        <circle cx="45" cy="38" r="19" fill="#fdf1e6" stroke="#f0c9a8" stroke-width="2"/>
+        <ellipse cx="37" cy="37" rx="4.2" ry="5" fill="#5c4a3d"/>
+        <ellipse cx="53" cy="37" rx="4.2" ry="5" fill="#5c4a3d"/>
+        <circle cx="38.5" cy="35" r="1.5" fill="white"/>
+        <circle cx="54.5" cy="35" r="1.5" fill="white"/>
+        <path d="M41 45 Q45 49 49 45" stroke="#caa385" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+        <ellipse cx="45" cy="42" rx="2.2" ry="1.6" fill="#f4a9b8"/>
+      </svg>
+    </div>
     <h4 class="fw-bold text-dark mb-1">เข้าสู่ระบบ</h4>
     <p class="text-muted small mb-4">ระบบติดตามสถานะ PO</p>
     <form onsubmit="handleLogin(event)">
@@ -311,7 +357,7 @@ body{padding:20px;background:var(--bg);font-family:'Sarabun',sans-serif;color:va
   <!-- Header -->
   <div class="main-header">
     <div class="header-brand">
-      <div class="header-icon"><i class="fas fa-search-location"></i></div>
+      <div class="header-icon"><i class="fas fa-paw"></i></div>
       <div>
         <p class="header-title mb-0">ติดตามสถานะ PO</p>
         <p class="header-sub">ระบบตรวจสอบการจัดส่งสินค้า</p>
@@ -327,7 +373,7 @@ body{padding:20px;background:var(--bg);font-family:'Sarabun',sans-serif;color:va
       <button id="headerUploadBtn" class="btn btn-primary btn-sm px-3" style="display:none;" data-bs-toggle="modal" data-bs-target="#uploadModal">
         <i class="fas fa-cloud-upload-alt me-1"></i>อัปโหลด
       </button>
-      <button class="btn btn-sm px-3 text-white fw-bold" onclick="exportToExcel()" style="background:#10b981;border:none;">
+      <button class="btn btn-sm px-3 text-white fw-bold" onclick="exportToExcel()" style="background:var(--primary-dark);border:none;">
         <i class="fas fa-file-download me-1"></i>Export
       </button>
       <button class="btn btn-sm btn-outline-danger px-3" onclick="logout()">
@@ -364,7 +410,7 @@ body{padding:20px;background:var(--bg);font-family:'Sarabun',sans-serif;color:va
       <div class="col-md-9">
         <div class="input-group search-wrap">
           <span class="input-group-text ps-3"><i class="fas fa-search text-muted"></i></span>
-          <input type="text" id="searchInput" class="form-control" placeholder="พิมพ์เลข PO, ชื่อสถานี, สถานะ, วันที่..." oninput="debounceSearch()">
+          <input type="text" id="searchInput" class="form-control" placeholder="พิมพ์หรือ paste เลข PO หลายรายการได้เลย..." oninput="debounceSearch()" onpaste="handlePasteSearch(event)">
           <button class="btn btn-link text-muted pe-3" onclick="clearSearch()"><i class="fas fa-times"></i></button>
         </div>
       </div>
@@ -420,57 +466,13 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
 const SUPPLIERS = {
-  CHV: { view:'view_chv',      label:'Chevron', color:'#0d6efd' },
-  MRC: { view:'view_mrc',      label:'Miracle', color:'#198754' },
-  PSP: { view:'view_exgodown', label:'PSP',     color:'#e67e22' },
+  CHV: { view:'view_chv',      label:'Chevron', color:'#8fb9e8' },
+  MRC: { view:'view_mrc',      label:'Miracle', color:'#7fc9a3' },
+  PSP: { view:'view_exgodown', label:'PSP',     color:'#f0ab7a' },
 };
 
 // ============================================================
 // STATUS LOGIC
-// ============================================================
-// แปลงวันที่ทุกฟอร์แมตให้เป็นมาตรฐานเดียว: YYYY-MM-DD
-// รองรับ: "05/06/2026" (d/m/y), "2026-06-09" (y-m-d),
-//         "9/6/2026", "09-06-2026", และ Date object จาก Excel
-// ============================================================
-function normalizeDate(v){
-  if(v===null || v===undefined || v==='' || v==='-') return '';
-  // ถ้าเป็น Date object อยู่แล้ว
-  if(v instanceof Date && !isNaN(v)){
-    return v.getFullYear()+'-'+String(v.getMonth()+1).padStart(2,'0')+'-'+String(v.getDate()).padStart(2,'0');
-  }
-  const s = String(v).trim();
-
-  // รูปแบบ YYYY-MM-DD หรือ YYYY/MM/DD (ปีขึ้นก่อน) — มาตรฐานอยู่แล้ว
-  let m = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
-  if(m){
-    return m[1]+'-'+String(+m[2]).padStart(2,'0')+'-'+String(+m[3]).padStart(2,'0');
-  }
-
-  // รูปแบบ DD/MM/YYYY หรือ DD-MM-YYYY (วันขึ้นก่อน)
-  m = s.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})/);
-  if(m){
-    let d=+m[1], mo=+m[2], y=+m[3];
-    // ป้องกันสลับ: ถ้าตัวแรก > 12 แสดงว่าเป็นวันแน่นอน (ถูกแล้ว)
-    // ปี พ.ศ. > 2500 → แปลงเป็น ค.ศ.
-    if(y>2500) y-=543;
-    return y+'-'+String(mo).padStart(2,'0')+'-'+String(d).padStart(2,'0');
-  }
-
-  // แปลงไม่ได้ คืนค่าเดิม (กันข้อมูลหาย)
-  return s;
-}
-
-// แปลงวันที่ทุกคอลัมน์ในแถวให้เป็นมาตรฐาน
-function normalizeRowDates(row){
-  ['delivery_date','start_delivery_date','receive_date',
-   'doc_date','bill_date','appoint_date','shop_receive_date',
-   'confirm_date','planned_gi_date','actual_delivery_date',
-   'created_date','inv_date','depart_from_rtpl'].forEach(f=>{
-    if(row[f]!==undefined) row[f]=normalizeDate(row[f]);
-  });
-  return row;
-}
-
 // ============================================================
 function mapBucket(row) {
   const src    = row._source;
@@ -479,29 +481,28 @@ function mapBucket(row) {
   const start  = row.start_delivery_date||'';
   const days   = row.days_remaining;
 
-  // --- 1. เช็คว่า "สำเร็จ" ก่อนเสมอ (มาก่อน days ตามที่ตกลง) ---
-  // ถ้ามีวันทำรับ และเริ่มส่งไม่หลังวันทำรับ → สำเร็จ
+  // ถ้ามีวันทำรับ และ start <= receive → สำเร็จ
   if (recv && recv !== '-' && recv !== '') {
+    // ถ้า start_delivery_date หลัง receive_date → ถือว่ายังไม่สำเร็จ
     if (start && start !== '-' && start > recv) {
-      // เริ่มส่งหลังวันทำรับ = ข้อมูลผิดปกติ ไม่นับว่าสำเร็จ
+      // ไม่นับว่าทำรับแล้ว
     } else {
       return 'SUCCESS';
     }
   }
-  // status บอกว่าส่งเสร็จ → สำเร็จ (เช็คก่อน days ด้วย)
-  if (src === 'CHV' && (status === 'Pass' || status === 'Completed')) return 'SUCCESS';
+
+  // มี days_remaining (ค้างเกินกำหนด) → ค้างรับ
+  if (days && parseInt(days) >= 0) return 'OVERDUE';
+
+  // CHV
+  if (src === 'CHV') {
+    if (status === 'Pass' || status === 'Completed') return 'SUCCESS';
+    if (status === 'Fail' || status === 'Rejected')  return 'FAILED';
+    return 'PENDING';
+  }
+  // MRC / PSP
   if (status.includes('ส่งเสร็จ')) return 'SUCCESS';
-
-  // --- 2. เช็คว่า "ไม่สำเร็จ" ---
-  if (src === 'CHV' && (status === 'Fail' || status === 'Rejected')) return 'FAILED';
   if (status === 'ส่งไม่ได้' || status.includes('คืน')) return 'FAILED';
-
-  // --- 3. ค้างรับ: ต้องค้างตั้งแต่ 1 วันขึ้นไป (0 = ครบกำหนดวันนี้ ยังไม่ค้าง) ---
-  // ใช้ Number() แทน parseInt + เช็ค !== '' เพื่อให้ค่า 0 และ "0" ได้ผลเหมือนกัน
-  const d = (days === null || days === undefined || days === '') ? NaN : Number(days);
-  if (!isNaN(d) && d > 0) return 'OVERDUE';
-
-  // --- 4. ที่เหลือ = ระหว่างทาง ---
   return 'PENDING';
 }
 
@@ -581,7 +582,7 @@ async function fetchAllData() {
     if (data[0]?.uploaded_at){
       document.getElementById('lastUpdateDisplay').innerText=new Date(data[0].uploaded_at).toLocaleString('th-TH');
     }
-    data.forEach(row=>masterData.push(normalizeRowDates({_source:key,...row})));
+    data.forEach(row=>masterData.push({_source:key,...row}));
   });
   await Promise.all(promises);
   document.getElementById('loader').style.display='none';
@@ -593,9 +594,10 @@ async function fetchAllData() {
 // OVERDUE ALERT POPUP
 // ============================================================
 function showOverdueAlert() {
-  // ใช้ mapBucket ตัวเดียวกับการ์ด เพื่อให้กฎสอดคล้องกัน
-  // (ค้างเฉพาะ > 0 วัน และของที่สำเร็จแล้วจะไม่ขึ้น)
-  const overdue = masterData.filter(r => mapBucket(r) === 'OVERDUE');
+  const overdue = masterData.filter(r => {
+    const days = r.days_remaining;
+    return days !== null && days !== undefined && days !== '' && parseInt(days) >= 0;
+  });
   if (!overdue.length) return;
 
   let html = `<p class="text-muted small mb-3">พบ <b class="text-danger">${overdue.length}</b> รายการที่ค้างรับเกินกำหนด</p>`;
@@ -631,13 +633,19 @@ function toggleSupplier(src,btn){
   updateView();
 }
 function debounceSearch(){clearTimeout(searchTimer);searchTimer=setTimeout(performSearch,400);}
-function clearSearch(){document.getElementById('searchInput').value='';performSearch();}
+function clearSearch(){document.getElementById("searchInput").value="";performSearch();}
+function handlePasteSearch(e){e.preventDefault();const text=(e.clipboardData||window.clipboardData).getData("text");const cleaned=text.replace(/[\n\r\t]+/g," ").replace(/\s{2,}/g," ").trim();document.getElementById("searchInput").value=cleaned;performSearch();}
 function performSearch(){
-  const kw=document.getElementById('searchInput').value.toLowerCase().trim();
+  const raw=document.getElementById('searchInput').value.trim();
+  const kw=raw.toLowerCase();
   let filtered=masterData.filter(r=>selectedSuppliers.includes(r._source));
   if (kw){
-    const terms=kw.split(/[\s,]+/).filter(t=>t);
-    filtered=filtered.filter(row=>{const str=Object.values(row).join(' ').toLowerCase();return terms.some(t=>str.includes(t));});
+    // แยกด้วย newline, tab, semicolon, comma, space — รองรับ copy หลาย PO มาพร้อมกัน
+    const terms=kw.split(/[\n\r\t;,\s]+/).map(t=>t.trim()).filter(t=>t.length>0);
+    filtered=filtered.filter(row=>{
+      const str=Object.values(row).join(' ').toLowerCase();
+      return terms.some(t=>str.includes(t));
+    });
   }
   searchResults=filtered;
   createWarehouseButtons();
@@ -697,8 +705,6 @@ function renderCards(){
     const days=row.days_remaining;
 
     // แสดง receive_date: ถ้า start > receive ให้แสดง start แทน
-    // (เทียบ string ได้ถูกต้อง เพราะวันที่ถูก normalize เป็น YYYY-MM-DD แล้ว
-    //  ฟอร์แมต ISO นี้ เรียงตามตัวอักษร = เรียงตามเวลา)
     let displayReceive = row.receive_date||'';
     if (displayReceive && row.start_delivery_date && row.start_delivery_date > displayReceive) {
       displayReceive = row.start_delivery_date;
@@ -714,8 +720,8 @@ function renderCards(){
           <div class="info-row"><div class="info-label">ชื่อคลัง:</div><div class="info-value">${row.warehouse||'-'}</div></div>
           <div class="info-row"><div class="info-label">รหัสจุดส่ง:</div><div class="info-value fw-bold" style="color:var(--primary)">${row.point_code||'-'}</div></div>
           <div class="info-row"><div class="info-label">ชื่อสถานี:</div><div class="info-value">${row.station_name||'-'}</div></div>
-          <div class="info-row"><div class="info-label">วันที่เริ่มส่ง:</div><div class="info-value">${row.start_delivery_date||'-'}</div></div>
           <div class="info-row"><div class="info-label">วันที่ถึง:</div><div class="info-value">${row.delivery_date||'-'}</div></div>
+          <div class="info-row"><div class="info-label">วันที่เริ่มส่ง:</div><div class="info-value">${row.start_delivery_date||'-'}</div></div>
           <div class="info-row"><div class="info-label">วันที่ทำรับ:</div><div class="info-value">${displayReceive||'<span style="color:var(--muted);font-style:italic;font-size:0.8rem;">ยังไม่ทำรับ</span>'}</div></div>
           ${days?`<div class="info-row"><div class="info-label">วันที่ค้างรับ:</div><div class="info-value"><span class="overdue-badge">⏰ ${days} วัน</span></div></div>`:''}
         </div>
@@ -756,33 +762,60 @@ async function openPODetail(po,source){
   document.getElementById('modalContent').style.display='none';
   new bootstrap.Modal(document.getElementById('poDetailModal')).show();
 
-  const {data,error}=await db.from('me2n_data').select('vendor,material,short_text,quantity_in_sku,stockkeeping_unit,order_quantity,order_unit,still_deliver_qty').eq('purchasing_document',po);
+  const {data,error}=await db.from('me2n_data')
+    .select('vendor,material,short_text,quantity_in_sku,stockkeeping_unit,order_quantity,order_unit,still_deliver_qty')
+    .eq('purchasing_document',po);
   document.getElementById('modalLoader').style.display='none';
   document.getElementById('modalContent').style.display='block';
 
   if (error||!data?.length){
-    document.getElementById('modalContent').innerHTML=`<div class="text-center py-4 text-muted"><i class="fas fa-inbox fa-2x mb-3"></i><p>ไม่พบข้อมูลใน ME2N สำหรับ PO นี้</p></div>`;
+    document.getElementById('modalContent').innerHTML=`
+      <div class="text-center py-4 text-muted">
+        <i class="fas fa-inbox fa-2x mb-3"></i>
+        <p>ไม่พบข้อมูลใน ME2N สำหรับ PO นี้</p>
+      </div>`;
     return;
   }
-  let html=`<p class="text-muted small mb-3">พบ <b>${data.length}</b> รายการ</p>`;
+
+  let html=`<p class="text-muted small mb-3">พบ <b>${data.length}</b> รายการ</p>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle" style="font-size:0.85rem;border-radius:12px;overflow:hidden;">
+      <thead>
+        <tr style="background:#f0fdf4;color:var(--stxt);font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">
+          <th class="px-3 py-2">#</th>
+          <th class="px-3 py-2">Vendor</th>
+          <th class="px-3 py-2">Material</th>
+          <th class="px-3 py-2">Short Text</th>
+          <th class="px-3 py-2 text-center">Order Qty</th>
+          <th class="px-3 py-2 text-center">Qty in SKU</th>
+          <th class="px-3 py-2 text-center">SKU Unit</th>
+          <th class="px-3 py-2 text-center">สถานะ</th>
+        </tr>
+      </thead>
+      <tbody>`;
+
   data.forEach((item,idx)=>{
     const overdue=parseFloat(item.still_deliver_qty||0)>0;
+    const rowBg = overdue ? 'background:#fff5f5;' : '';
     html+=`
-      <div class="popup-item-card">
-        <div class="d-flex justify-content-between mb-2">
-          <span class="fw-bold" style="color:var(--primary)">รายการที่ ${idx+1}</span>
-          ${overdue?`<span class="days-badge">ค้างส่ง ${item.still_deliver_qty}</span>`:'<span class="status-pill pill-success" style="font-size:0.73rem;">ส่งครบ</span>'}
-        </div>
-        <div class="row g-2">
-          <div class="col-12"><div class="popup-item-label">Vendor</div><div class="popup-item-value">${item.vendor||'-'}</div></div>
-          <div class="col-6"><div class="popup-item-label">Material</div><div class="popup-item-value">${item.material||'-'}</div></div>
-          <div class="col-6"><div class="popup-item-label">Short Text</div><div class="popup-item-value">${item.short_text||'-'}</div></div>
-          <div class="col-4"><div class="popup-item-label">Order Qty</div><div class="popup-item-value">${item.order_quantity||'-'} ${item.order_unit||''}</div></div>
-          <div class="col-4"><div class="popup-item-label">Qty in SKU</div><div class="popup-item-value">${item.quantity_in_sku||'-'}</div></div>
-          <div class="col-4"><div class="popup-item-label">SKU Unit</div><div class="popup-item-value">${item.stockkeeping_unit||'-'}</div></div>
-        </div>
-      </div>`;
+      <tr style="${rowBg}">
+        <td class="px-3 py-2 text-muted fw-bold">${idx+1}</td>
+        <td class="px-3 py-2" style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${item.vendor||'-'}">${item.vendor||'-'}</td>
+        <td class="px-3 py-2 fw-bold" style="color:var(--primary)">${item.material||'-'}</td>
+        <td class="px-3 py-2" style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${item.short_text||'-'}">${item.short_text||'-'}</td>
+        <td class="px-3 py-2 text-center fw-bold">${item.order_quantity||'-'} <small class="text-muted">${item.order_unit||''}</small></td>
+        <td class="px-3 py-2 text-center">${item.quantity_in_sku||'-'}</td>
+        <td class="px-3 py-2 text-center">${item.stockkeeping_unit||'-'}</td>
+        <td class="px-3 py-2 text-center">
+          ${overdue
+            ?`<span class="overdue-badge">ค้างส่ง ${item.still_deliver_qty}</span>`
+            :`<span class="status-pill pill-success" style="font-size:0.73rem;">ส่งครบ</span>`
+          }
+        </td>
+      </tr>`;
   });
+
+  html+=`</tbody></table></div>`;
   document.getElementById('modalContent').innerHTML=html;
 }
 
